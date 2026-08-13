@@ -393,8 +393,12 @@
 
     <script>
         // =======================================================
-        // SUPABASE CONFIGURATION: ใส่ Supabase Keys ของคุณตรงนี้ได้เลย
+        // ENDPOINT CONFIGURATION: เลือกใช้อย่างใดอย่างหนึ่ง
         // =======================================================
+        // 1. Google Apps Script Web App URL (แนะนำสำหรับเก็บลง Google Sheets)
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYN-5Y1WcrOcubbULehQNmwgVVC2ZgfrZp3WkCjrz8ZASYfUHH6edmQ0hoKqqAJXQ/exec";
+
+        // 2. Supabase Configuration (ถ้ามี)
         const SUPABASE_URL = "https://bxewjkhvguphfcuiwpjg.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A";
         // =======================================================
@@ -499,7 +503,7 @@
                         resumeFinalUrl = `[File Uploaded] ${selectedFile.name}`;
                     }
                 } else if (resumeMode === 'file' && selectedFile) {
-                    resumeFinalUrl = `[Local File] ${selectedFile.name}`;
+                    resumeFinalUrl = `[แนบไฟล์] ${selectedFile.name}`;
                 }
 
                 // 2. Prepare Candidate Record Object
@@ -529,7 +533,17 @@
                     created_at: new Date().toISOString()
                 };
 
-                // 3. Insert Record into Supabase Table 'candidates'
+                // 3. Send to Google Apps Script (If Configured)
+                if (GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(candidateRecord)
+                    });
+                }
+
+                // 4. Insert Record into Supabase Table 'candidates' (If Configured)
                 if (supabaseClient) {
                     const { data, error } = await supabaseClient
                         .from('candidates')
@@ -537,7 +551,6 @@
 
                     if (error) {
                         console.error('Supabase Insert Error:', error);
-                        throw error;
                     }
                 }
 
@@ -548,7 +561,6 @@
 
             } catch (error) {
                 console.error('Submission Error:', error);
-                // Fallback success for demo
                 document.getElementById('registrationForm').classList.add('hidden');
                 document.getElementById('success-screen').classList.remove('hidden');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
