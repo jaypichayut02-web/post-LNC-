@@ -3,721 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LNC Plus - แบบฟอร์มลงทะเบียนและรับสมัครงานออนไลน์</title>
+    <title>แบบฟอร์มใบสมัครงาน - บริษัท แอลเอ็นซี จำกัด (LNC Plus)</title>
 
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Prompt & Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Supabase JS Client v2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM 18 UMD -->
+    <script data-cfasync="false" src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script data-cfasync="false" src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel Standalone -->
+    <script data-cfasync="false" src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"></script>
 
-    <script>
+    <script data-cfasync="false">
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         lnc: {
-                            pink: '#e11d48',
-                            hover: '#be123c',
-                            dark: '#0f172a',
-                            light: '#f8fafc'
+                            pink: '#E60067',
+                            pinklight: '#FFF0F5',
+                            dark: '#18181B',
+                            gray: '#71717A',
+                            bg: '#FAFAFA'
                         }
-                    },
-                    fontFamily: {
-                        sans: ['Prompt', 'Inter', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
-    <style>
-        body {
-            font-family: 'Prompt', 'Inter', sans-serif;
-            background-color: #f1f5f9;
-            color: #1e293b;
-        }
-        .form-card {
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-        }
-        .form-card-header {
-            border-top: 10px solid #e11d48;
-        }
-    </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 antialiased pb-20">
+<body>
+    <div id="root"></div>
 
-    <!-- Top Header / Banner -->
-    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
-        <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-500 flex items-center justify-center font-bold text-xl text-white shadow-md shadow-rose-500/20">
-                    LNC<span class="text-xs font-black ml-0.5">+</span>
-                </div>
-                <div>
-                    <h1 class="font-bold text-base text-white tracking-wide leading-tight">LNC Plus Careers</h1>
-                    <p class="text-[11px] text-rose-400">เพราะเราเป็นได้มากกว่ากวดวิชา • Step to Beyond Learning</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <span id="connection-status" class="text-[11px] bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 flex items-center gap-1.5 cursor-pointer" onclick="openConfigModal()">
-                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="connection-text">รอตั้งค่า Supabase</span>
-                </span>
-                <button type="button" onclick="openConfigModal()" title="ตั้งค่า Supabase" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-slate-700 transition">
-                    <i class="fa-solid fa-gear text-xs"></i>
-                </button>
-            </div>
-        </div>
-    </header>
+    <script data-cfasync="false" type="text/babel" data-presets="react" data-type="module">
+        // ------------------------------------------------------------------------
+        // 🔑 นำ Web App URL ที่ได้จากการ Deploy ใน Google Apps Script มาวางที่นี่
+        // ------------------------------------------------------------------------
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXxOREeQs1GgYl_qg0xSGj4xiGn-FGtDh1imHhy_k0pzDJzaZL7tr-aM240JJ4l-zmVA/exec";
+        // ------------------------------------------------------------------------
 
-    <!-- Main Form Container -->
-    <main class="max-w-2xl mx-auto px-4 mt-6 relative z-20">
+        const DRAFT_STORAGE_KEY = 'lnc_job_application_sheets_draft';
 
-        <!-- SUCCESS VIEW (Hidden by Default) -->
-        <div id="success-screen" class="hidden bg-white rounded-2xl form-card form-card-header p-8 text-center space-y-4">
-            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
-                <i class="fa-solid fa-check"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-slate-800">ส่งแบบฟอร์มเรียบร้อยแล้ว</h2>
-            <p class="text-sm text-slate-600 max-w-md mx-auto">
-                ระบบได้บันทึกคำตอบของคุณเข้าระบบบริษัท แอลเอ็นซี จำกัด เรียบร้อยแล้ว ทางทีมงานจะพิจารณาใบสมัครและติดต่อกลับโดยเร็วที่สุด
-            </p>
-            <div class="pt-4">
-                <button onclick="resetFormView()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition">
-                    ส่งคำตอบเพิ่มอีกรายการ
-                </button>
-            </div>
-        </div>
+        const LNC_BRANCHES = [
+            'แลนมาร์ค-มหาชัย',
+            'ข้างเซ็นทรัล พระราม2',
+            'เดอะไบรท์ พระราม2',
+            'The walk ราชพฤกษ์ นนทบุรี',
+            'Meta mall เชียงใหม่',
+            'EZY Learn (ออนไลน์)',
+            'Happitat บางนา (ชั้น 5)'
+        ];
 
-        <!-- FORM CONTAINER -->
-        <form id="registrationForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+        const JOB_POSITIONS = [
+            'คุณครูประจำ',
+            'ติวเตอร์ (คุณครูพาร์ทไทม์)',
+            'Operation Admin สาขาเดอะไบรท์ พระราม 2',
+            'CS',
+            'HR Recruitment'
+        ];
 
-            <!-- Title Header Card -->
-            <div class="bg-white rounded-2xl form-card form-card-header p-6 sm:p-8 space-y-3">
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    แบบฟอร์มลงทะเบียนรับสมัครงาน
-                </h1>
-                <p class="text-xs sm:text-sm text-slate-600 font-medium">
-                    บริษัท แอลเอ็นซี จำกัด
-                </p>
-                <div class="text-xs text-rose-600 font-medium pt-2 border-t border-slate-100 flex items-center gap-1">
-                    <span>*</span> ระบุว่าเป็นคำถามที่จำเป็น
-                </div>
-            </div>
+        const SOURCES = [
+            'เพจ Facebook',
+            'กลุ่มหางานใน Facebook',
+            'Fastwork',
+            'IG',
+            'เพื่อนแนะนำ',
+            'อื่นๆ'
+        ];
 
-            <!-- Email Indicator Box (Google Form Style) -->
-            <div class="bg-white rounded-xl border border-slate-200 p-4 text-xs text-slate-600 flex items-center justify-between shadow-sm">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-circle-user text-slate-400 text-base"></i>
-                    <span id="display-user-email" class="font-medium text-slate-700">jaypichayut01@gmail.com</span>
-                    <span class="text-slate-400 text-[11px]">(สลับบัญชี)</span>
-                </div>
-                <div class="text-[11px] text-slate-400 hidden sm:block">
-                    บันทึกข้อมูลแบบฟอร์ม
-                </div>
-            </div>
+        function Icon({ name, className = "w-4 h-4" }) {
+            switch (name) {
+                case 'check-circle':
+                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+                case 'send':
+                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>;
+                case 'paperclip':
+                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>;
+                case 'info':
+                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+                default:
+                    return null;
+            }
+        }
 
-            <!-- CARD 1: PDPA Consent -->
-            <div class="bg-white rounded-2xl form-card p-6 space-y-4">
-                <p class="text-xs text-slate-700 leading-relaxed">
-                    บริษัท แอลเอ็นซี จำกัด (ดำเนินธุรกิจสถาบันกวดวิชา ภายใต้แบรนด์ LNC Plus) ขอขอบคุณที่ท่านให้ความสนใจในการสมัครงาน บริษัทจะดำเนินการพิจารณาใบสมัครของท่านโดยเร็ว และจะทำการติดต่อกลับในช่วงเวลาที่เหมาะสม ทั้งนี้ หากท่านให้ความยินยอม บริษัทจะเก็บข้อมูลของท่านไว้เป็นเวลา 1 ปี นับแต่บริษัทได้รับใบสมัครเพื่อพิจารณาความเหมาะสมต่อไป <span class="text-rose-600 font-bold">*</span>
-                </p>
-                
-                <div class="space-y-2 pt-2">
-                    <label class="flex items-center gap-3 cursor-pointer text-xs font-semibold text-slate-800 hover:text-rose-600 transition">
-                        <input type="radio" name="pdpa_consent" value="ยินยอม" checked class="w-4 h-4 text-rose-600 focus:ring-rose-500 border-slate-300">
-                        <span>ยินยอม</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer text-xs font-semibold text-slate-800 hover:text-rose-600 transition">
-                        <input type="radio" name="pdpa_consent" value="ไม่ยินยอม" class="w-4 h-4 text-rose-600 focus:ring-rose-500 border-slate-300">
-                        <span>ไม่ยินยอม</span>
-                    </label>
-                </div>
-            </div>
+        function App() {
+            const [isSubmitting, setIsSubmitting] = React.useState(false);
+            const [submitResult, setSubmitResult] = React.useState(null);
+            const [toastMessage, setToastMessage] = React.useState(null);
+            const [isRestoredFromDraft, setIsRestoredFromDraft] = React.useState(false);
 
-            <!-- CARD 2: Personal Info -->
-            <div class="bg-white rounded-2xl form-card p-6 space-y-5">
-                <!-- 1. คำนำหน้า - ชื่อ - สกุล -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        คำนำหน้า-ชื่อ-สกุล <span class="text-rose-600">*</span>
-                    </label>
-                    <input type="text" id="full_name" required placeholder="เช่น นายสอนดี ด้วยตั้งใจ"
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                </div>
-
-                <!-- 2. ชื่อเล่น -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        ชื่อเล่น <span class="text-rose-600">*</span>
-                    </label>
-                    <input type="text" id="nickname" required placeholder="เช่น ป๊อบ"
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                </div>
-
-                <!-- 3. วันเดือนปีเกิด & อายุ -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            วันเดือนปีเกิด <span class="text-rose-600">*</span>
-                        </label>
-                        <input type="date" id="birthdate" required onchange="calculateAge()"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                        <p class="text-[11px] text-slate-400 mt-1">เลือก ค.ศ. เกิด (เช่น 1995)</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            อายุ (ปี) <span class="text-rose-600">*</span>
-                        </label>
-                        <input type="number" id="age" required min="15" max="80" placeholder="คำนวณให้อัตโนมัติ"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition bg-slate-50">
-                    </div>
-                </div>
-
-                <!-- 4. เบอร์โทรศัพท์ & Line ID -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            เบอร์โทรศัพท์ <span class="text-rose-600">*</span>
-                        </label>
-                        <input type="tel" id="phone" required placeholder="ไม่ต้องมีขีด เช่น 0908984816" pattern="[0-9]{9,10}"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            ID : Line <span class="text-rose-600">*</span>
-                        </label>
-                        <input type="text" id="line_id" required placeholder="เช่น line_id_123"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                    </div>
-                </div>
-
-                <!-- 5. Email -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        Email (Gmail) ปัจจุบันที่ท่านใช้งาน <span class="text-rose-600">*</span>
-                    </label>
-                    <input type="email" id="email" required placeholder="jaypichayut01@gmail.com" value="jaypichayut01@gmail.com" oninput="document.getElementById('display-user-email').innerText = this.value || 'jaypichayut01@gmail.com'"
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                </div>
-
-                <!-- 6. ที่อยู่ปัจจุบัน -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        ที่อยู่ปัจจุบัน <span class="text-rose-600">*</span>
-                    </label>
-                    <textarea id="address" required rows="2" placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด"
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"></textarea>
-                </div>
-            </div>
-
-            <!-- CARD 3: Resume / CV -->
-            <div class="bg-white rounded-2xl form-card p-6 space-y-3">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <i class="fa-solid fa-paperclip text-rose-600"></i>
-                        <span>กรุณาแนบ Resume หรือ CV ที่ท่านอยากนำเสนอ <span class="text-rose-600">*</span></span>
-                    </label>
-                    <div class="flex bg-slate-100 p-0.5 rounded-lg text-[11px]">
-                        <button type="button" onclick="toggleResumeMode('file')" id="btn-mode-file" class="px-2.5 py-1 rounded-md font-medium bg-white text-slate-800 shadow-sm">
-                            อัปโหลดไฟล์
-                        </button>
-                        <button type="button" onclick="toggleResumeMode('link')" id="btn-mode-link" class="px-2.5 py-1 rounded-md font-medium text-slate-600">
-                            ใส่ลิงก์
-                        </button>
-                    </div>
-                </div>
-
-                <div id="resume-file-box" class="block">
-                    <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-rose-400 transition cursor-pointer bg-slate-50/50" onclick="document.getElementById('resume_file').click()">
-                        <input type="file" id="resume_file" class="hidden" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" onchange="handleFileSelected(event)">
-                        <i class="fa-solid fa-cloud-arrow-up text-rose-500 text-2xl mb-1.5 block"></i>
-                        <p class="text-xs font-semibold text-slate-700" id="file-upload-label">คลิก หรือ ลากไฟล์ Resume มาวางที่นี่</p>
-                        <p class="text-[11px] text-slate-400 mt-0.5">รองรับ PDF, Document หรือ Image ขนาดสูงสุด 10 MB</p>
-                    </div>
-                </div>
-
-                <div id="resume-link-box" class="hidden">
-                    <input type="url" id="resume_url_input" placeholder="https://drive.google.com/... หรือ Canva link"
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                </div>
-            </div>
-
-            <!-- CARD 4: Job & Qualifications -->
-            <div class="bg-white rounded-2xl form-card p-6 space-y-5">
-                <!-- ตำแหน่งที่สนใจสมัคร -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        ตำแหน่งที่สนใจสมัคร <span class="text-rose-600">*</span>
-                    </label>
-                    <select id="job_title" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition bg-white">
-                        <option value="คุณครูประจำ">คุณครูประจำ</option>
-                        <option value="ติวเตอร์ (คุณครูพาร์ทไทม์)">ติวเตอร์ (คุณครูพาร์ทไทม์)</option>
-                        <option value="Operation Admin สาขาเดอะไบรท์ พระราม 2">Operation Admin สาขาเดอะไบรท์ พระราม 2</option>
-                        <option value="CS">CS</option>
-                        <option value="HR Recruitment">HR Recruitment</option>
-                    </select>
-                </div>
-
-                <!-- สาขาวิชาและระดับชั้นที่สอน -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        สำหรับคุณครูประจำและติวเตอร์ (พาร์ทไทม์) โปรดระบุสาขาวิชาที่สนใจ และระดับชั้นที่สอน <span class="text-rose-600">*</span>
-                    </label>
-                    <input type="text" id="teaching_detail" required placeholder="เช่น คณิต ม1-ม6 และวิทย์ทั่วไป ม1-ม3"
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                </div>
-
-                <!-- ความสามารถและประสบการณ์ -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        ความสามารถและประสบการณ์ที่ผ่านมา <span class="text-rose-600">*</span>
-                    </label>
-                    <textarea id="experience" required rows="3" placeholder="อธิบายประสบการณ์สอน หรือประสบการณ์การทำงานที่ผ่านมา..."
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"></textarea>
-                </div>
-
-                <!-- สาขาที่สะดวกทำงาน -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        สาขาที่สะดวกทำงาน <span class="text-rose-600">*</span>
-                    </label>
-                    <select id="branch_preference" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition bg-white">
-                        <option value="Happitat บางนา (ชั้น 5)">Happitat บางนา (ชั้น 5)</option>
-                        <option value="เดอะไบรท์ พระราม 2">เดอะไบรท์ พระราม 2</option>
-                        <option value="ข้างเซ็นทรัล พระราม 2">ข้างเซ็นทรัล พระราม 2</option>
-                        <option value="แลนมาร์ค มหาชัย">แลนมาร์ค มหาชัย</option>
-                        <option value="The Walk ราชพฤกษ์ นนทบุรี">The Walk ราชพฤกษ์ นนทบุรี</option>
-                        <option value="Meta Mall เชียงใหม่">Meta Mall เชียงใหม่</option>
-                        <option value="EZY Learn (ออนไลน์)">EZY Learn (ออนไลน์)</option>
-                    </select>
-                </div>
-
-                <!-- ระดับการศึกษา & คณะสาขา -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            ระดับการศึกษา <span class="text-rose-600">*</span>
-                        </label>
-                        <select id="education_level" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition bg-white">
-                            <option value="ต่ำกว่าปริญญาตรี">ต่ำกว่าปริญญาตรี</option>
-                            <option value="ปริญญาตรี" selected>ปริญญาตรี</option>
-                            <option value="ปริญญาโท">ปริญญาโท</option>
-                            <option value="ปริญญาเอก">ปริญญาเอก</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            คณะสาขาวิชาที่จบ หรือแผนการเรียน <span class="text-rose-600">*</span>
-                        </label>
-                        <input type="text" id="faculty" required placeholder="เช่น คณะวิศวกรรมศาสตร์ สาขาวิศวกรรมไฟฟ้า"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                    </div>
-                </div>
-
-                <!-- เหตุผลที่อยากร่วมงาน -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-2">
-                        เหตุผลที่อยากร่วมงานกับ LNC Plus <span class="text-rose-600">*</span>
-                    </label>
-                    <textarea id="reason_for_joining" required rows="2" placeholder="เล่าให้เราฟังว่าทำไมคุณถึงอยากเป็นส่วนหนึ่งของ LNC Plus..."
-                        class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"></textarea>
-                </div>
-
-                <!-- วันที่เริ่มงาน & เงินเดือนที่คาดหวัง -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            วันที่สามารถเริ่มงานได้ <span class="text-rose-600">*</span>
-                        </label>
-                        <input type="text" id="start_date" required placeholder="เช่น เริ่มได้ทันที หรือ ระบุวันที่" value="เริ่มได้ทันที"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            เงินเดือนที่คาดหวัง <span class="text-rose-600">*</span>
-                        </label>
-                        <input type="text" id="expected_salary" required placeholder="เช่น 25,000 บาท/เดือน"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                    </div>
-                </div>
-
-                <!-- แหล่งข่าวสาร & ผู้แนะนำ -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            ท่านเห็นประกาศรับสมัครนี้จากที่ไหน <span class="text-rose-600">*</span>
-                        </label>
-                        <select id="source" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition bg-white">
-                            <option value="เพจ Facebook">เพจ Facebook</option>
-                            <option value="กลุ่มหางานใน Facebook">กลุ่มหางานใน Facebook</option>
-                            <option value="Fastwork">Fastwork</option>
-                            <option value="IG">IG</option>
-                            <option value="เพื่อนแนะนำ">เพื่อนแนะนำ</option>
-                            <option value="อื่นๆ">อื่นๆ</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-2">
-                            ผู้แนะนำในการสมัคร ใส่ ชื่อ-นามสกุล
-                        </label>
-                        <input type="text" id="referral_name" placeholder="ใส่ ชื่อ-นามสกุล ของผู้แนะนำ"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submit Button Bar -->
-            <div class="bg-white rounded-2xl form-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <button type="submit" id="submit-btn" class="w-full sm:w-auto px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center justify-center gap-2 transform active:scale-95">
-                    <span>ส่งแบบฟอร์ม</span>
-                    <i class="fa-solid fa-paper-plane text-xs"></i>
-                </button>
-
-                <button type="button" onclick="document.getElementById('registrationForm').reset()" class="text-xs text-slate-500 hover:text-slate-800">
-                    ล้างแบบฟอร์ม
-                </button>
-            </div>
-
-        </form>
-
-        <footer class="text-center text-[11px] text-slate-500 py-6 space-y-1">
-            <p>ห้ามส่งรหัสผ่านใน Google ฟอร์ม</p>
-            <p>แบบฟอร์มนี้ถูกสร้างขึ้นภายใน บริษัท แอลเอ็นซี จำกัด - ติดต่อเจ้าของแบบฟอร์ม</p>
-            <p class="text-slate-400">แบบฟอร์มนี้ดูน่าสงสัยใช่ไหม รายงาน</p>
-        </footer>
-
-    </main>
-
-    <!-- Modal Config Supabase -->
-    <div id="config-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
-            <div class="flex items-center justify-between border-b pb-3 border-slate-100">
-                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-database text-rose-600"></i>
-                    เชื่อมต่อฐานข้อมูล Supabase
-                </h3>
-                <button type="button" onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-                กรอก **Project URL** และ **Anon Key** จากหน้า Supabase Dashboard (Settings > API) เพื่อเชื่อมต่อข้อมูลลงตาราง `candidates` และอัปโหลดไฟล์ไปที่ Bucket `resumes`
-            </p>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Supabase URL</label>
-                    <input type="text" id="cfg_url" placeholder="https://xyz...supabase.co" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:outline-none">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Supabase Anon Key</label>
-                    <input type="password" id="cfg_key" placeholder="eyJhbGciOiJIUzI1Ni..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:outline-none">
-                </div>
-            </div>
-            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button type="button" onclick="closeConfigModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">ยกเลิก</button>
-                <button type="button" onclick="saveSupabaseConfig()" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20">บันทึกการเชื่อมต่อ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Popup Notification -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm"></div>
-
-    <script>
-        // =======================================================
-        // ENDPOINT CONFIGURATION
-        // =======================================================
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFYi3of1Iflna0RVG2EDXYueQ-LFfyF_Do0XxZHTE30TfXwYpDMb04UVosx0lH5LzC/exec";
-
-        let SUPABASE_URL = localStorage.getItem('lnc_supabase_url') || "https://bxewjkhvguphfcuiwpjg.supabase.co";
-        let SUPABASE_ANON_KEY = localStorage.getItem('lnc_supabase_key') || "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A";
-
-        let supabaseClient = null;
-        let selectedFile = null;
-        let resumeMode = 'file';
-
-        // Initialize Supabase Client
-        window.addEventListener('DOMContentLoaded', () => {
-            initSupabase();
-        });
-
-        function initSupabase() {
-            if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+            const savedDraft = React.useMemo(() => {
                 try {
-                    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    console.log('Supabase Initialized Successfully');
-                    
-                    // Update connection UI status
-                    const statusEl = document.getElementById('connection-status');
-                    statusEl.className = "text-[11px] bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5 cursor-pointer";
-                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>เชื่อมต่อ Supabase แล้ว</span>`;
-
-                    // Fetch branches dynamically from DB if available
-                    fetchBranchesFromSupabase();
+                    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+                    return raw ? JSON.parse(raw) : null;
                 } catch (e) {
-                    console.error('Supabase Init Error:', e);
-                    setDisconnectedStatus('ตั้งค่าล้มเหลว');
+                    return null;
                 }
-            } else {
-                setDisconnectedStatus('ยังไม่เชื่อมต่อ Supabase');
-            }
-        }
+            }, []);
 
-        function setDisconnectedStatus(text) {
-            const statusEl = document.getElementById('connection-status');
-            statusEl.className = "text-[11px] bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 flex items-center gap-1.5 cursor-pointer";
-            statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>${text}</span>`;
-        }
+            const [pdpaConsent, setPdpaConsent] = React.useState(savedDraft?.pdpaConsent || 'ยินยอม');
+            const [fullName, setFullName] = React.useState(savedDraft?.fullName || '');
+            const [nickname, setNickname] = React.useState(savedDraft?.nickname || '');
+            const [birthdate, setBirthdate] = React.useState(savedDraft?.birthdate || '');
+            const [age, setAge] = React.useState(savedDraft?.age || '');
+            const [phone, setPhone] = React.useState(savedDraft?.phone || '');
+            const [lineId, setLineId] = React.useState(savedDraft?.lineId || '');
+            const [email, setEmail] = React.useState(savedDraft?.email || '');
+            const [address, setAddress] = React.useState(savedDraft?.address || '');
+            
+            const [resumeUrl, setResumeUrl] = React.useState(savedDraft?.resumeUrl || '');
 
-        async function fetchBranchesFromSupabase() {
-            if (!supabaseClient) return;
-            try {
-                const { data, error } = await supabaseClient.from('branches').select('name').order('name');
-                if (!error && data && data.length > 0) {
-                    const select = document.getElementById('branch_preference');
-                    select.innerHTML = '';
-                    data.forEach(branch => {
-                        const opt = document.createElement('option');
-                        opt.value = branch.name;
-                        opt.textContent = branch.name;
-                        select.appendChild(opt);
-                    });
+            const [jobTitle, setJobTitle] = React.useState(savedDraft?.jobTitle || JOB_POSITIONS[0]);
+            const [teachingDetail, setTeachingDetail] = React.useState(savedDraft?.teachingDetail || '');
+            const [experience, setExperience] = React.useState(savedDraft?.experience || '');
+            const [branchPreference, setBranchPreference] = React.useState(savedDraft?.branchPreference || LNC_BRANCHES[0]);
+
+            const [educationLevel, setEducationLevel] = React.useState(savedDraft?.educationLevel || 'ปริญญาตรี');
+            const [faculty, setFaculty] = React.useState(savedDraft?.faculty || '');
+            const [reasonForJoining, setReasonForJoining] = React.useState(savedDraft?.reasonForJoining || '');
+            const [startDate, setStartDate] = React.useState(savedDraft?.startDate || 'เริ่มได้ทันที');
+            const [expectedSalary, setExpectedSalary] = React.useState(savedDraft?.expectedSalary || '');
+            const [source, setSource] = React.useState(savedDraft?.source || SOURCES[0]);
+            const [referralName, setReferralName] = React.useState(savedDraft?.referralName || '');
+
+            React.useEffect(() => {
+                if (savedDraft) {
+                    setIsRestoredFromDraft(true);
                 }
-            } catch (err) {
-                console.warn('Could not fetch branches from Supabase:', err);
-            }
-        }
+            }, []);
 
-        function openConfigModal() {
-            document.getElementById('cfg_url').value = SUPABASE_URL;
-            document.getElementById('cfg_key').value = SUPABASE_ANON_KEY;
-            document.getElementById('config-modal').classList.remove('hidden');
-        }
+            React.useEffect(() => {
+                if (submitResult) return;
+                const draftPayload = {
+                    pdpaConsent, fullName, nickname, birthdate, age, phone, lineId, email, address,
+                    resumeUrl, jobTitle, teachingDetail, experience, branchPreference,
+                    educationLevel, faculty, reasonForJoining, startDate, expectedSalary, source, referralName
+                };
+                try {
+                    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+                } catch (e) {}
+            }, [
+                pdpaConsent, fullName, nickname, birthdate, age, phone, lineId, email, address,
+                resumeUrl, jobTitle, teachingDetail, experience, branchPreference,
+                educationLevel, faculty, reasonForJoining, startDate, expectedSalary, source, referralName, submitResult
+            ]);
 
-        function closeConfigModal() {
-            document.getElementById('config-modal').classList.add('hidden');
-        }
+            const handleClearDraft = () => {
+                localStorage.removeItem(DRAFT_STORAGE_KEY);
+                setIsRestoredFromDraft(false);
+                setPdpaConsent('ยินยอม');
+                setFullName(''); setNickname(''); setBirthdate(''); setAge(''); setPhone('');
+                setLineId(''); setEmail(''); setAddress(''); setResumeUrl('');
+                setJobTitle(JOB_POSITIONS[0]); setTeachingDetail(''); setExperience('');
+                setBranchPreference(LNC_BRANCHES[0]); setEducationLevel('ปริญญาตรี');
+                setFaculty(''); setReasonForJoining(''); setStartDate('เริ่มได้ทันที');
+                setExpectedSalary(''); setSource(SOURCES[0]); setReferralName('');
+                showToast('🧹 ล้างข้อมูลร่างทั้งหมดเรียบร้อยแล้ว');
+            };
 
-        function saveSupabaseConfig() {
-            const url = document.getElementById('cfg_url').value.trim();
-            const key = document.getElementById('cfg_key').value.trim();
+            const handleBirthdateChange = (e) => {
+                const val = e.target.value;
+                setBirthdate(val);
+                if (val) {
+                    const birthYear = new Date(val).getFullYear();
+                    const currentYear = new Date().getFullYear();
+                    const calculatedAge = currentYear - birthYear;
+                    if (calculatedAge > 0 && calculatedAge < 100) {
+                        setAge(calculatedAge.toString());
+                    }
+                }
+            };
 
-            if (!url || !key) {
-                showToast('กรุณากรอกทั้ง Supabase URL และ Anon Key', 'error');
-                return;
-            }
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(null), 4000);
+            };
 
-            SUPABASE_URL = url;
-            SUPABASE_ANON_KEY = key;
-            localStorage.setItem('lnc_supabase_url', url);
-            localStorage.setItem('lnc_supabase_key', key);
+            const handleSubmit = async (e) => {
+                e.preventDefault();
 
-            closeConfigModal();
-            initSupabase();
-            showToast('บันทึกข้อมูลการเชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
-        }
-
-        // Auto Calculate Age from Birthdate
-        function calculateAge() {
-            const birthdateInput = document.getElementById('birthdate').value;
-            if (!birthdateInput) return;
-
-            const birthDate = new Date(birthdateInput);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-
-            if (age >= 0) {
-                document.getElementById('age').value = age;
-            }
-        }
-
-        // Toggle File vs Link for Resume
-        function toggleResumeMode(mode) {
-            resumeMode = mode;
-            const btnFile = document.getElementById('btn-mode-file');
-            const btnLink = document.getElementById('btn-mode-link');
-            const boxFile = document.getElementById('resume-file-box');
-            const boxLink = document.getElementById('resume-link-box');
-
-            if (mode === 'file') {
-                btnFile.className = 'px-2.5 py-1 rounded-md font-medium bg-white text-slate-800 shadow-sm';
-                btnLink.className = 'px-2.5 py-1 rounded-md font-medium text-slate-600';
-                boxFile.classList.remove('hidden');
-                boxLink.classList.add('hidden');
-            } else {
-                btnLink.className = 'px-2.5 py-1 rounded-md font-medium bg-white text-slate-800 shadow-sm';
-                btnFile.className = 'px-2.5 py-1 rounded-md font-medium text-slate-600';
-                boxLink.classList.remove('hidden');
-                boxFile.classList.add('hidden');
-            }
-        }
-
-        function handleFileSelected(e) {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 10 * 1024 * 1024) {
-                    showToast('ขนาดไฟล์เกิน 10MB กรุณาเลือกไฟล์ใหม่', 'error');
-                    e.target.value = '';
+                if (pdpaConsent !== 'ยินยอม') {
+                    showToast('⚠️ กรุณาเลือก "ยินยอม" เพื่อให้บริษัทดำเนินการพิจารณาใบสมัคร');
                     return;
                 }
-                selectedFile = file;
-                document.getElementById('file-upload-label').innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-file-circle-check mr-1"></i> ${file.name}</span> (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
-            }
-        }
 
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> กำลังบันทึกข้อมูล...`;
-
-            try {
-                let resumeFinalUrl = document.getElementById('resume_url_input').value.trim();
-
-                // 1. Upload Resume File to Supabase Storage if file mode selected
-                if (resumeMode === 'file' && selectedFile && supabaseClient) {
-                    const fileExt = selectedFile.name.split('.').pop();
-                    const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-                    
-                    const { data: uploadData, error: uploadError } = await supabaseClient
-                        .storage
-                        .from('resumes')
-                        .upload(fileName, selectedFile, {
-                            cacheControl: '3600',
-                            upsert: false
-                        });
-
-                    if (!uploadError) {
-                        const { data: publicUrlData } = supabaseClient
-                            .storage
-                            .from('resumes')
-                            .getPublicUrl(fileName);
-                        
-                        resumeFinalUrl = publicUrlData?.publicUrl || fileName;
-                    } else {
-                        console.warn('Storage upload error, saving filename:', uploadError);
-                        resumeFinalUrl = `[File Selected: ${selectedFile.name}]`;
-                        showToast('อัปโหลดไฟล์ไปที่ Storage ไม่สำเร็จ แต่จะทำการบันทึกข้อมูลใบสมัครต่อ', 'info');
-                    }
-                } else if (resumeMode === 'file' && selectedFile) {
-                    resumeFinalUrl = `[แนบไฟล์] ${selectedFile.name}`;
+                if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("YOUR_GAS_DEPLOYMENT_ID")) {
+                    showToast('❌ ยังไม่ได้ใส่ Google Apps Script Web App URL ในโค้ด');
+                    return;
                 }
 
-                // 2. Prepare Candidate Record Object (Matching Supabase Schema Columns)
-                const candidateRecord = {
-                    full_name: document.getElementById('full_name').value.trim(),
-                    nickname: document.getElementById('nickname').value.trim(),
-                    phone: document.getElementById('phone').value.trim(),
-                    email: document.getElementById('email').value.trim(),
-                    line_id: document.getElementById('line_id').value.trim(),
-                    birthdate: document.getElementById('birthdate').value || null,
-                    age: parseInt(document.getElementById('age').value) || null,
-                    address: document.getElementById('address').value.trim(),
-                    pdpa_consent: document.querySelector('input[name="pdpa_consent"]:checked')?.value || 'ยินยอม',
-                    candidate_type: document.getElementById('job_title').value.includes('ติวเตอร์') ? 'Tutor' : 'Full-Time',
-                    job_title: document.getElementById('job_title').value,
-                    teaching_detail: document.getElementById('teaching_detail').value.trim(),
-                    experience: document.getElementById('experience').value.trim(),
-                    branch_preference: document.getElementById('branch_preference').value,
-                    education_level: document.getElementById('education_level').value,
-                    faculty: document.getElementById('faculty').value.trim(),
-                    reason_for_joining: document.getElementById('reason_for_joining').value.trim(),
-                    start_date: document.getElementById('start_date').value.trim(),
-                    expected_salary: document.getElementById('expected_salary').value.trim(),
-                    source: document.getElementById('source').value,
-                    referral_name: document.getElementById('referral_name').value.trim(),
-                    resume_url: resumeFinalUrl || 'ไม่ได้แนบ',
-                    stage: 'Application',
-                    created_at: new Date().toISOString()
+                setIsSubmitting(true);
+
+                const isTutor = jobTitle.includes('คุณครู') || jobTitle.includes('ติวเตอร์');
+                const candidateType = isTutor ? 'Tutor' : 'Support';
+
+                const payload = {
+                    fullName, nickname, birthdate, age, phone, lineId, email, address,
+                    pdpaConsent, candidateType,
+                    jobTitle: isTutor && teachingDetail ? `${jobTitle} (${teachingDetail})` : jobTitle,
+                    teachingDetail, experience, branchPreference, educationLevel, faculty,
+                    reasonForJoining, startDate, expectedSalary, source, referralName,
+                    resumeUrl: resumeUrl || 'ไม่ได้แนบลิงก์'
                 };
 
-                // 3. Insert Record into Supabase Table 'candidates'
-                if (supabaseClient) {
-                    const { data, error } = await supabaseClient
-                        .from('candidates')
-                        .insert([candidateRecord]);
-
-                    if (error) {
-                        console.error('Supabase Insert Error:', error);
-                        showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูลลง Supabase: ' + error.message, 'error');
-                    } else {
-                        console.log('Successfully saved to Supabase candidates!');
-                    }
-                } else {
-                    showToast('ยังไม่ได้ตั้งค่า Supabase URL และ Key ข้อมูลถูกส่งสำเร็จเฉพาะโหมดส่งคำตอบ', 'info');
-                }
-
-                // 4. Send to Google Apps Script (If Configured)
-                if (GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
-                    await fetch(GOOGLE_SCRIPT_URL, {
+                try {
+                    await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(candidateRecord)
+                        body: JSON.stringify(payload)
                     });
+
+                    localStorage.removeItem(DRAFT_STORAGE_KEY);
+                    setSubmitResult({
+                        success: true,
+                        name: fullName,
+                        job: jobTitle
+                    });
+                } catch (err) {
+                    console.error('Submission Error:', err);
+                    showToast('❌ ไม่สามารถส่งข้อมูลไปยัง Google Sheets ได้');
                 }
 
-                // Show Success Screen
-                document.getElementById('registrationForm').classList.add('hidden');
-                document.getElementById('success-screen').classList.remove('hidden');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            } catch (error) {
-                console.error('Submission Error:', error);
-                showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = `<span>ส่งแบบฟอร์ม</span><i class="fa-solid fa-paper-plane text-xs"></i>`;
-            }
-        }
-
-        function resetFormView() {
-            document.getElementById('registrationForm').reset();
-            document.getElementById('registrationForm').classList.remove('hidden');
-            document.getElementById('success-screen').classList.add('hidden');
-            selectedFile = null;
-            document.getElementById('file-upload-label').innerText = 'คลิก หรือ ลากไฟล์ Resume มาวางที่นี่';
-        }
-
-        // Notification Toast System
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-
-            const bgColors = {
-                success: 'bg-emerald-600 text-white',
-                error: 'bg-rose-600 text-white',
-                info: 'bg-slate-800 text-white'
+                setIsSubmitting(false);
             };
 
-            toast.className = `p-3.5 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-medium transition-all transform translate-y-2 opacity-0 ${bgColors[type] || bgColors.info}`;
-            toast.innerHTML = `
-                <i class="fa-solid fa-circle-info text-sm"></i>
-                <span>${message}</span>
-            `;
+            return (
+                <div className="min-h-screen flex flex-col bg-zinc-50">
+                    <header className="bg-zinc-900 text-white border-b border-zinc-800 sticky top-0 z-40 shadow-md">
+                        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className="bg-lnc-pink text-white w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg tracking-tighter shadow-md">
+                                    LNC<span className="text-xs font-light text-white">+</span>
+                                </div>
+                                <div>
+                                    <h1 className="font-extrabold text-sm sm:text-base tracking-tight leading-none text-white">LNC Plus Careers</h1>
+                                    <p className="text-[10px] text-zinc-400 mt-0.5">เพราะเราเป็นได้มากกว่ากวดวิชา • Step to Beyond Learning</p>
+                                </div>
+                            </div>
+                            <span className="text-[10px] font-bold px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full border border-emerald-800 flex items-center space-x-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>Google Sheets Connected</span>
+                            </span>
+                        </div>
+                    </header>
 
-            container.appendChild(toast);
+                    <section className="bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-800 text-white py-10 px-4">
+                        <div className="max-w-3xl mx-auto text-center space-y-3">
+                            <div className="inline-flex items-center space-x-2 bg-rose-500/10 text-rose-300 border border-rose-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                <span>แบบฟอร์มใบสมัครงานออนไลน์</span>
+                            </div>
+                            <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+                                ร่วมงานกับ บริษัท แอลเอ็นซี จำกัด
+                            </h2>
+                            <p className="text-zinc-300 text-xs sm:text-sm max-w-xl mx-auto font-normal leading-relaxed">
+                                สถาบันกวดวิชา LNC Plus ยินดีต้อนรับทั้งคุณครูประจำ ติวเตอร์พาร์ทไทม์ และทีมงานฝ่ายสนับสนุนมาร่วมสร้างสังคมการเรียนรู้ที่ดีไปด้วยกัน
+                            </p>
+                        </div>
+                    </section>
 
-            requestAnimationFrame(() => {
-                toast.classList.remove('translate-y-2', 'opacity-0');
-            });
+                    <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 -mt-4 pb-16">
+                        {isRestoredFromDraft && !submitResult && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4 flex items-center justify-between text-xs text-amber-900 shadow-sm">
+                                <div className="flex items-center space-x-2">
+                                    <span className="p-1 bg-amber-200 text-amber-800 rounded-lg font-bold text-[10px]">💾 AUTO-RESTORED</span>
+                                    <span>ระบบได้ดึงข้อมูลที่คุณเคยพิมพ์ค้างไว้กลับมาให้อัตโนมัติ</span>
+                                </div>
+                                <button type="button" onClick={handleClearDraft} className="text-[11px] font-bold text-rose-600 hover:text-rose-800 underline">
+                                    ล้างร่างเพื่อเริ่มใหม่
+                                </button>
+                            </div>
+                        )}
 
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
+                        {submitResult ? (
+                            <div className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-2xl text-center space-y-5">
+                                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                                    <Icon name="check-circle" className="w-10 h-10" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-2xl font-black text-zinc-900">ลงทะเบียนสมัครงานเรียบร้อยแล้ว!</h3>
+                                    <p className="text-xs text-zinc-500">บริษัทได้รับข้อมูลใบสมัครของ <strong>คุณ{submitResult.name}</strong> ในตำแหน่ง <strong>{submitResult.job}</strong> เรียบร้อยแล้ว</p>
+                                </div>
+                                <div className="p-4 bg-zinc-50 rounded-xl border text-xs text-left max-w-sm mx-auto space-y-1.5 font-mono">
+                                    <div className="flex justify-between border-b pb-1">
+                                        <span className="text-zinc-500">สถานะการบันทึก:</span>
+                                        <span className="text-emerald-600 font-bold">บันทึกลง Google Sheet สำเร็จ</span>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-400 text-center pt-1 font-sans">
+                                        ข้อมูลจะถูกเพิ่มเป็นแถวใหม่ใน Google Sheets ของคุณทันที
+                                    </p>
+                                </div>
+                                <button onClick={() => setSubmitResult(null)} className="bg-zinc-900 hover:bg-black text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow-md">
+                                    ส่งใบสมัครเพิ่ม / กรอกใหม่อีกครั้ง
+                                </button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-zinc-200 shadow-xl p-6 sm:p-8 space-y-8">
+                                <div className="p-4 bg-rose-50/70 rounded-xl border border-rose-200 space-y-2">
+                                    <p className="text-xs text-zinc-700 leading-relaxed">
+                                        บริษัท แอลเอ็นซี จำกัด ขอขอบคุณที่ท่านให้ความสนใจในการสมัครงาน บริษัทจะดำเนินการพิจารณาใบสมัครของท่านโดยเร็ว และจะทำการติดต่อกลับในช่วงเวลาที่เหมาะสม ทั้งนี้ หากท่านให้ความยินยอม บริษัทจะเก็บข้อมูลของท่านไว้เป็นเวลา 1 ปี
+                                    </p>
+                                    <div className="flex items-center space-x-6 pt-1 text-xs font-bold text-zinc-900">
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" name="pdpa" value="ยินยอม" checked={pdpaConsent === 'ยินยอม'} onChange={e => setPdpaConsent(e.target.value)} className="accent-lnc-pink" />
+                                            <span>ยินยอม</span>
+                                        </label>
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" name="pdpa" value="ไม่ยินยอม" checked={pdpaConsent === 'ไม่ยินยอม'} onChange={e => setPdpaConsent(e.target.value)} className="accent-lnc-pink" />
+                                            <span>ไม่ยินยอม</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Section 1 */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
+                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                                        <span>ข้อมูลส่วนตัวและการติดต่อ</span>
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                        <div className="sm:col-span-2">
+                                            <label className="font-bold block mb-1">คำนำหน้า - ชื่อ - สกุล *</label>
+                                            <input type="text" placeholder="เช่น นายสอนดี ด้วยตั้งใจ" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">ชื่อเล่น *</label>
+                                            <input type="text" placeholder="เช่น ครูเบสท์" value={nickname} onChange={e => setNickname(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">วันเดือนปีเกิด *</label>
+                                            <input type="date" value={birthdate} onChange={handleBirthdateChange} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">อายุ (ปี) *</label>
+                                            <input type="number" placeholder="เช่น 25" value={age} onChange={e => setAge(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">เบอร์โทรศัพท์ *</label>
+                                            <input type="tel" placeholder="0908984816" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">ID : Line *</label>
+                                            <input type="text" placeholder="line_id_123" value={lineId} onChange={e => setLineId(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">Email (Gmail) *</label>
+                                            <input type="email" placeholder="example@gmail.com" value={email} onChange={e => setEmail(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                    </div>
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">ที่อยู่ปัจจุบัน</label>
+                                        <textarea rows="2" placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={address} onChange={e => setAddress(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"></textarea>
+                                    </div>
+                                    <div className="text-xs space-y-1">
+                                        <label className="font-bold block mb-1">แนบลิงก์ Resume / Portfolio (Google Drive / Canva URL) *</label>
+                                        <input type="url" placeholder="https://drive.google.com/file/d/... หรือ Canva URL" value={resumeUrl} onChange={e => setResumeUrl(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        <p className="text-[10px] text-zinc-400">กรุณาแชร์ลิงก์ที่เปิดสิทธิ์เข้าดูไว้ให้เรียบร้อย</p>
+                                    </div>
+                                </div>
+
+                                {/* Section 2 */}
+                                <div className="space-y-4 pt-4 border-t border-zinc-200">
+                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
+                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                                        <span>ตำแหน่งที่สนใจและสาขา</span>
+                                    </h3>
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">ตำแหน่งที่สนใจสมัคร *</label>
+                                        <select value={jobTitle} onChange={e => setJobTitle(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
+                                            {JOB_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
+                                        </select>
+                                    </div>
+                                    {(jobTitle.includes('คุณครู') || jobTitle.includes('ติวเตอร์')) && (
+                                        <div className="text-xs space-y-1">
+                                            <label className="font-bold block">โปรดระบุสาขาวิชาที่สนใจ และระดับชั้นที่สอน *</label>
+                                            <input type="text" placeholder="เช่น คณิต ม.1-ม.6 และวิทย์ทั่วไป ม.1-ม.3" value={teachingDetail} onChange={e => setTeachingDetail(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                    )}
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">ความสามารถและประสบการณ์ที่ผ่านมา *</label>
+                                        <textarea rows="3" placeholder="อธิบายประสบการณ์สอน หรือประสบการณ์ทำงานที่เกี่ยวข้องอย่างสั้นๆ" value={experience} onChange={e => setExperience(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required></textarea>
+                                    </div>
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">สาขาที่สะดวกทำงาน *</label>
+                                        <select value={branchPreference} onChange={e => setBranchPreference(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
+                                            {LNC_BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Section 3 */}
+                                <div className="space-y-4 pt-4 border-t border-zinc-200">
+                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
+                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                                        <span>การศึกษาและคาดหวัง</span>
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">ระดับการศึกษา *</label>
+                                            <select value={educationLevel} onChange={e => setEducationLevel(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
+                                                <option value="ต่ำกว่าปริญญาตรี">ต่ำกว่าปริญญาตรี</option>
+                                                <option value="ปริญญาตรี">ปริญญาตรี</option>
+                                                <option value="ปริญญาโท">ปริญญาโท</option>
+                                                <option value="ปริญญาเอก">ปริญญาเอก</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">คณะสาขาวิชาที่จบ หรือแผนการเรียน *</label>
+                                            <input type="text" placeholder="เช่น คณะวิศวกรรมศาสตร์" value={faculty} onChange={e => setFaculty(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                    </div>
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">เหตุผลที่อยากร่วมงานกับ LNC Plus *</label>
+                                        <textarea rows="2" placeholder="บอกเล่าความตั้งใจ หรือเป้าหมายในการร่วมงาน" value={reasonForJoining} onChange={e => setReasonForJoining(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required></textarea>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">วันที่สามารถเริ่มงานได้ *</label>
+                                            <input type="text" placeholder="เช่น เริ่มได้ทันที" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">เงินเดือนที่คาดหวัง *</label>
+                                            <input type="text" placeholder="เช่น 25,000 บาท" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">ท่านเห็นประกาศรับสมัครนี้จากที่ไหน *</label>
+                                            <select value={source} onChange={e => setSource(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
+                                                {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">ผู้แนะนำในการสมัคร (ถ้ามี)</label>
+                                            <input type="text" placeholder="ชื่อ-นามสกุล ผู้แนะนำ" value={referralName} onChange={e => setReferralName(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-zinc-200 flex justify-end">
+                                    <button type="submit" disabled={isSubmitting} className="bg-lnc-pink hover:bg-rose-700 text-white font-extrabold text-xs px-8 py-3.5 rounded-xl transition shadow-lg flex items-center space-x-2">
+                                        {isSubmitting ? <span>กำลังส่งข้อมูลไป Google Sheets...</span> : <><span>ส่งใบสมัครเข้าระบบ LNC Plus</span><Icon name="send" className="w-4 h-4" /></>}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </main>
+
+                    {toastMessage && (
+                        <div className="fixed bottom-6 right-6 bg-zinc-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center space-x-2 border-l-4 border-lnc-pink z-50">
+                            <Icon name="info" className="w-4 h-4 text-lnc-pink" />
+                            <span>{toastMessage}</span>
+                        </div>
+                    )}
+                </div>
+            );
         }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
