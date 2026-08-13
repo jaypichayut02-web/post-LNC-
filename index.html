@@ -63,9 +63,15 @@
                     <p class="text-[11px] text-rose-400">เพราะเราเป็นได้มากกว่ากวดวิชา • Step to Beyond Learning</p>
                 </div>
             </div>
-            <span class="text-[11px] bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">
-                Google Form Style
-            </span>
+            <div class="flex items-center gap-2">
+                <span id="connection-status" class="text-[11px] bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 flex items-center gap-1.5 cursor-pointer" onclick="openConfigModal()">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span id="connection-text">รอตั้งค่า Supabase</span>
+                </span>
+                <button type="button" onclick="openConfigModal()" title="ตั้งค่า Supabase" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-slate-700 transition">
+                    <i class="fa-solid fa-gear text-xs"></i>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -282,13 +288,13 @@
                         สาขาที่สะดวกทำงาน <span class="text-rose-600">*</span>
                     </label>
                     <select id="branch_preference" required class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition bg-white">
-                        <option value="แลนมาร์ค-มหาชัย">แลนมาร์ค-มหาชัย</option>
-                        <option value="ข้างเซ็นทรัล พระราม2">ข้างเซ็นทรัล พระราม2</option>
-                        <option value="เดอะไบรท์ พระราม2">เดอะไบรท์ พระราม2</option>
-                        <option value="The walk ราชพฤกษ์ นนทบุรี">The walk ราชพฤกษ์ นนทบุรี</option>
-                        <option value="Meta mall เชียงใหม่">Meta mall เชียงใหม่</option>
+                        <option value="Happitat บางนา (ชั้น 5)">Happitat บางนา (ชั้น 5)</option>
+                        <option value="เดอะไบรท์ พระราม 2">เดอะไบรท์ พระราม 2</option>
+                        <option value="ข้างเซ็นทรัล พระราม 2">ข้างเซ็นทรัล พระราม 2</option>
+                        <option value="แลนมาร์ค มหาชัย">แลนมาร์ค มหาชัย</option>
+                        <option value="The Walk ราชพฤกษ์ นนทบุรี">The Walk ราชพฤกษ์ นนทบุรี</option>
+                        <option value="Meta Mall เชียงใหม่">Meta Mall เชียงใหม่</option>
                         <option value="EZY Learn (ออนไลน์)">EZY Learn (ออนไลน์)</option>
-                        <option value="บางนา">บางนา</option>
                     </select>
                 </div>
 
@@ -388,20 +394,49 @@
 
     </main>
 
+    <!-- Modal Config Supabase -->
+    <div id="config-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-database text-rose-600"></i>
+                    เชื่อมต่อฐานข้อมูล Supabase
+                </h3>
+                <button type="button" onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+                กรอก **Project URL** และ **Anon Key** จากหน้า Supabase Dashboard (Settings > API) เพื่อเชื่อมต่อข้อมูลลงตาราง `candidates` และอัปโหลดไฟล์ไปที่ Bucket `resumes`
+            </p>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Supabase URL</label>
+                    <input type="text" id="cfg_url" placeholder="https://xyz...supabase.co" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Supabase Anon Key</label>
+                    <input type="password" id="cfg_key" placeholder="eyJhbGciOiJIUzI1Ni..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeConfigModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold">ยกเลิก</button>
+                <button type="button" onclick="saveSupabaseConfig()" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-rose-600/20">บันทึกการเชื่อมต่อ</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Popup Notification -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm"></div>
 
     <script>
         // =======================================================
-        // ENDPOINT CONFIGURATION: เลือกใช้อย่างใดอย่างหนึ่ง
+        // ENDPOINT CONFIGURATION
         // =======================================================
-        // 1. Google Apps Script Web App URL (แนะนำสำหรับเก็บลง Google Sheets)
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzYN-5Y1WcrOcubbULehQNmwgVVC2ZgfrZp3WkCjrz8ZASYfUHH6edmQ0hoKqqAJXQ/exec";
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzFYi3of1Iflna0RVG2EDXYueQ-LFfyF_Do0XxZHTE30TfXwYpDMb04UVosx0lH5LzC/exec";
 
-        // 2. Supabase Configuration (ถ้ามี)
-        const SUPABASE_URL = "https://bxewjkhvguphfcuiwpjg.supabase.co";
-        const SUPABASE_ANON_KEY = "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A";
-        // =======================================================
+        let SUPABASE_URL = localStorage.getItem('lnc_supabase_url') || "https://bxewjkhvguphfcuiwpjg.supabase.co";
+        let SUPABASE_ANON_KEY = localStorage.getItem('lnc_supabase_key') || "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A";
 
         let supabaseClient = null;
         let selectedFile = null;
@@ -409,15 +444,84 @@
 
         // Initialize Supabase Client
         window.addEventListener('DOMContentLoaded', () => {
-            if (SUPABASE_URL && !SUPABASE_URL.includes('your-supabase-project-id') && window.supabase) {
+            initSupabase();
+        });
+
+        function initSupabase() {
+            if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
                 try {
                     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     console.log('Supabase Initialized Successfully');
+                    
+                    // Update connection UI status
+                    const statusEl = document.getElementById('connection-status');
+                    statusEl.className = "text-[11px] bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5 cursor-pointer";
+                    statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400"></span><span>เชื่อมต่อ Supabase แล้ว</span>`;
+
+                    // Fetch branches dynamically from DB if available
+                    fetchBranchesFromSupabase();
                 } catch (e) {
                     console.error('Supabase Init Error:', e);
+                    setDisconnectedStatus('ตั้งค่าล้มเหลว');
                 }
+            } else {
+                setDisconnectedStatus('ยังไม่เชื่อมต่อ Supabase');
             }
-        });
+        }
+
+        function setDisconnectedStatus(text) {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.className = "text-[11px] bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 flex items-center gap-1.5 cursor-pointer";
+            statusEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span><span>${text}</span>`;
+        }
+
+        async function fetchBranchesFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const { data, error } = await supabaseClient.from('branches').select('name').order('name');
+                if (!error && data && data.length > 0) {
+                    const select = document.getElementById('branch_preference');
+                    select.innerHTML = '';
+                    data.forEach(branch => {
+                        const opt = document.createElement('option');
+                        opt.value = branch.name;
+                        opt.textContent = branch.name;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.warn('Could not fetch branches from Supabase:', err);
+            }
+        }
+
+        function openConfigModal() {
+            document.getElementById('cfg_url').value = SUPABASE_URL;
+            document.getElementById('cfg_key').value = SUPABASE_ANON_KEY;
+            document.getElementById('config-modal').classList.remove('hidden');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('config-modal').classList.add('hidden');
+        }
+
+        function saveSupabaseConfig() {
+            const url = document.getElementById('cfg_url').value.trim();
+            const key = document.getElementById('cfg_key').value.trim();
+
+            if (!url || !key) {
+                showToast('กรุณากรอกทั้ง Supabase URL และ Anon Key', 'error');
+                return;
+            }
+
+            SUPABASE_URL = url;
+            SUPABASE_ANON_KEY = key;
+            localStorage.setItem('lnc_supabase_url', url);
+            localStorage.setItem('lnc_supabase_key', key);
+
+            closeConfigModal();
+            initSupabase();
+            showToast('บันทึกข้อมูลการเชื่อมต่อ Supabase เรียบร้อยแล้ว', 'success');
+        }
 
         // Auto Calculate Age from Birthdate
         function calculateAge() {
@@ -489,7 +593,10 @@
                     const { data: uploadData, error: uploadError } = await supabaseClient
                         .storage
                         .from('resumes')
-                        .upload(fileName, selectedFile);
+                        .upload(fileName, selectedFile, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
 
                     if (!uploadError) {
                         const { data: publicUrlData } = supabaseClient
@@ -500,13 +607,14 @@
                         resumeFinalUrl = publicUrlData?.publicUrl || fileName;
                     } else {
                         console.warn('Storage upload error, saving filename:', uploadError);
-                        resumeFinalUrl = `[File Uploaded] ${selectedFile.name}`;
+                        resumeFinalUrl = `[File Selected: ${selectedFile.name}]`;
+                        showToast('อัปโหลดไฟล์ไปที่ Storage ไม่สำเร็จ แต่จะทำการบันทึกข้อมูลใบสมัครต่อ', 'info');
                     }
                 } else if (resumeMode === 'file' && selectedFile) {
                     resumeFinalUrl = `[แนบไฟล์] ${selectedFile.name}`;
                 }
 
-                // 2. Prepare Candidate Record Object
+                // 2. Prepare Candidate Record Object (Matching Supabase Schema Columns)
                 const candidateRecord = {
                     full_name: document.getElementById('full_name').value.trim(),
                     nickname: document.getElementById('nickname').value.trim(),
@@ -530,10 +638,27 @@
                     source: document.getElementById('source').value,
                     referral_name: document.getElementById('referral_name').value.trim(),
                     resume_url: resumeFinalUrl || 'ไม่ได้แนบ',
+                    stage: 'Application',
                     created_at: new Date().toISOString()
                 };
 
-                // 3. Send to Google Apps Script (If Configured)
+                // 3. Insert Record into Supabase Table 'candidates'
+                if (supabaseClient) {
+                    const { data, error } = await supabaseClient
+                        .from('candidates')
+                        .insert([candidateRecord]);
+
+                    if (error) {
+                        console.error('Supabase Insert Error:', error);
+                        showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูลลง Supabase: ' + error.message, 'error');
+                    } else {
+                        console.log('Successfully saved to Supabase candidates!');
+                    }
+                } else {
+                    showToast('ยังไม่ได้ตั้งค่า Supabase URL และ Key ข้อมูลถูกส่งสำเร็จเฉพาะโหมดส่งคำตอบ', 'info');
+                }
+
+                // 4. Send to Google Apps Script (If Configured)
                 if (GOOGLE_SCRIPT_URL && !GOOGLE_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
                     await fetch(GOOGLE_SCRIPT_URL, {
                         method: 'POST',
@@ -543,17 +668,6 @@
                     });
                 }
 
-                // 4. Insert Record into Supabase Table 'candidates' (If Configured)
-                if (supabaseClient) {
-                    const { data, error } = await supabaseClient
-                        .from('candidates')
-                        .insert([candidateRecord]);
-
-                    if (error) {
-                        console.error('Supabase Insert Error:', error);
-                    }
-                }
-
                 // Show Success Screen
                 document.getElementById('registrationForm').classList.add('hidden');
                 document.getElementById('success-screen').classList.remove('hidden');
@@ -561,9 +675,7 @@
 
             } catch (error) {
                 console.error('Submission Error:', error);
-                document.getElementById('registrationForm').classList.add('hidden');
-                document.getElementById('success-screen').classList.remove('hidden');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                showToast('เกิดข้อผิดพลาด: ' + error.message, 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `<span>ส่งแบบฟอร์ม</span><i class="fa-solid fa-paper-plane text-xs"></i>`;
