@@ -45,12 +45,12 @@
     <div id="root"></div>
 
     <script data-cfasync="false" type="text/babel" data-presets="react" data-type="module">
-        /* STREAMING_CHUNK:Configuring production Supabase API credentials and constant dropdown options... */
+        /* STREAMING_CHUNK:Hardcoding production Supabase API credentials and constant dropdown options... */
         // ------------------------------------------------------------------------
-        // 🔑 ใส่ Supabase URL และ Anon Key ของคุณตรงนี้เพื่อใช้งานในระบบจริง
+        // 🔑 Supabase Live Connected Credentials
         // ------------------------------------------------------------------------
-        const SUPABASE_URL = "";  // เช่น "bxewjkhvguphfcuiwpjg.supabase.co"
-        const SUPABASE_KEY = "";  // เช่น "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ4ZXdqa2h2Z3VwaGZjdWl3cGpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2MjQyMDksImV4cCI6MjEwMjIwMDIwOX0.EhsiiuhjnNkf-Y3HHURzbmCIyicpdg1kTXhHgYMmxKQ"
+        const SUPABASE_URL = "https://bxewjkhvguphfcuiwpjg.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A";
         // ------------------------------------------------------------------------
 
         const DRAFT_STORAGE_KEY = 'lnc_job_application_prod_draft';
@@ -238,11 +238,6 @@
                     return;
                 }
 
-                if (!SUPABASE_URL || !SUPABASE_KEY) {
-                    showToast('❌ ระบบยังไม่ได้เชื่อมต่อฐานข้อมูล Supabase (กรุณาใส่ URL และ Anon Key ในระบบ)');
-                    return;
-                }
-
                 setIsSubmitting(true);
 
                 let finalResumeUrl = resumeUrl;
@@ -350,8 +345,9 @@
                                 </div>
                             </div>
 
-                            <span className="text-[10px] font-bold px-3 py-1 bg-zinc-800 text-zinc-300 rounded-full border border-zinc-700">
-                                Official Recruitment Form
+                            <span className="text-[10px] font-bold px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full border border-emerald-800 flex items-center space-x-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>Supabase Live Connected</span>
                             </span>
                         </div>
                     </header>
@@ -407,10 +403,10 @@
                                     </div>
                                     <div className="flex justify-between border-b pb-1">
                                         <span className="text-zinc-500">สถานะฐานข้อมูล:</span>
-                                        <span className="text-emerald-600 font-bold">บันทึกลงระบบ HR เรียบร้อย</span>
+                                        <span className="text-emerald-600 font-bold">บันทึกลง Supabase เรียบร้อย</span>
                                     </div>
                                     <p className="text-[10px] text-zinc-400 text-center pt-1 font-sans">
-                                        ฝ่ายทรัพยากรบุคคลจะพิจารณาประวัติและทำการติดต่อกลับตามขั้นตอนถัดไป
+                                        ข้อมูลจะแสดงบนระบบ LNC Plus HR Management หลังบ้านทันที
                                     </p>
                                 </div>
 
@@ -804,7 +800,7 @@
                                         className="bg-lnc-pink hover:bg-rose-700 text-white font-extrabold text-xs px-8 py-3.5 rounded-xl transition shadow-lg flex items-center space-x-2"
                                     >
                                         {isSubmitting ? (
-                                            <span>กำลังส่งข้อมูลเข้าสู่ระบบ...</span>
+                                            <span>กำลังส่งข้อมูลเข้าสู่ระบบ Supabase...</span>
                                         ) : (
                                             <>
                                                 <span>ส่งใบสมัครเข้าระบบ LNC Plus</span>
