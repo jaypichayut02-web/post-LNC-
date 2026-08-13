@@ -45,13 +45,15 @@
     <div id="root"></div>
 
     <script data-cfasync="false" type="text/babel" data-presets="react" data-type="module">
-        /* STREAMING_CHUNK:Configuring Supabase API credentials and application dropdown constants... */
+        /* STREAMING_CHUNK:Configuring Supabase API credentials and constant options... */
         // ------------------------------------------------------------------------
-        // 🔑 ใส่ Supabase URL และ Anon Key ของคุณตรงนี้เพื่อเชื่อมต่อฐานข้อมูล
+        // 🔑 ใส่ Supabase URL และ Anon Key ของคุณตรงนี้ (นำมาจาก Supabase Dashboard)
         // ------------------------------------------------------------------------
         const SUPABASE_URL = "";  // เช่น "https://bxewjkhvguphfcuiwpjg.supabase.co"
         const SUPABASE_KEY = "";  // เช่น "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A"
         // ------------------------------------------------------------------------
+
+        const DRAFT_STORAGE_KEY = 'lnc_job_application_draft_v2';
 
         const LNC_BRANCHES = [
             'แลนมาร์ค-มหาชัย',
@@ -81,39 +83,80 @@
         ];
 
         function App() {
-            /* STREAMING_CHUNK:Initializing form react states including file upload states... */
+            /* STREAMING_CHUNK:Initializing state variables and restoring draft from storage... */
             const [isSubmitting, setIsSubmitting] = React.useState(false);
             const [submitResult, setSubmitResult] = React.useState(null);
             const [toastMessage, setToastMessage] = React.useState(null);
+            const [isRestoredFromDraft, setIsRestoredFromDraft] = React.useState(false);
+
+            // Load draft from localStorage
+            const savedDraft = React.useMemo(() => {
+                try {
+                    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+                    return raw ? JSON.parse(raw) : null;
+                } catch (e) {
+                    return null;
+                }
+            }, []);
 
             // Form Fields State
-            const [pdpaConsent, setPdpaConsent] = React.useState('ยินยอม');
-            const [fullName, setFullName] = React.useState('');
-            const [nickname, setNickname] = React.useState('');
-            const [birthdate, setBirthdate] = React.useState('');
-            const [age, setAge] = React.useState('');
-            const [phone, setPhone] = React.useState('');
-            const [lineId, setLineId] = React.useState('');
-            const [email, setEmail] = React.useState('');
-            const [address, setAddress] = React.useState('');
+            const [pdpaConsent, setPdpaConsent] = React.useState(savedDraft?.pdpaConsent || 'ยินยอม');
+            const [fullName, setFullName] = React.useState(savedDraft?.fullName || '');
+            const [nickname, setNickname] = React.useState(savedDraft?.nickname || '');
+            const [birthdate, setBirthdate] = React.useState(savedDraft?.birthdate || '');
+            const [age, setAge] = React.useState(savedDraft?.age || '');
+            const [phone, setPhone] = React.useState(savedDraft?.phone || '');
+            const [lineId, setLineId] = React.useState(savedDraft?.lineId || '');
+            const [email, setEmail] = React.useState(savedDraft?.email || '');
+            const [address, setAddress] = React.useState(savedDraft?.address || '');
             
-            // Resume Attachment States (File Upload OR Link URL)
-            const [attachmentType, setAttachmentType] = React.useState('file'); // 'file' or 'url'
+            // Resume Attachment States
+            const [attachmentType, setAttachmentType] = React.useState(savedDraft?.attachmentType || 'file');
             const [resumeFile, setResumeFile] = React.useState(null);
-            const [resumeUrl, setResumeUrl] = React.useState('');
+            const [resumeUrl, setResumeUrl] = React.useState(savedDraft?.resumeUrl || '');
 
-            const [jobTitle, setJobTitle] = React.useState(JOB_POSITIONS[0]);
-            const [teachingDetail, setTeachingDetail] = React.useState('');
-            const [experience, setExperience] = React.useState('');
-            const [branchPreference, setBranchPreference] = React.useState(LNC_BRANCHES[0]);
+            const [jobTitle, setJobTitle] = React.useState(savedDraft?.jobTitle || JOB_POSITIONS[0]);
+            const [teachingDetail, setTeachingDetail] = React.useState(savedDraft?.teachingDetail || '');
+            const [experience, setExperience] = React.useState(savedDraft?.experience || '');
+            const [branchPreference, setBranchPreference] = React.useState(savedDraft?.branchPreference || LNC_BRANCHES[0]);
 
-            const [educationLevel, setEducationLevel] = React.useState('ปริญญาตรี');
-            const [faculty, setFaculty] = React.useState('');
-            const [reasonForJoining, setReasonForJoining] = React.useState('');
-            const [startDate, setStartDate] = React.useState('เริ่มได้ทันที');
-            const [expectedSalary, setExpectedSalary] = React.useState('');
-            const [source, setSource] = React.useState(SOURCES[0]);
-            const [referralName, setReferralName] = React.useState('');
+            const [educationLevel, setEducationLevel] = React.useState(savedDraft?.educationLevel || 'ปริญญาตรี');
+            const [faculty, setFaculty] = React.useState(savedDraft?.faculty || '');
+            const [reasonForJoining, setReasonForJoining] = React.useState(savedDraft?.reasonForJoining || '');
+            const [startDate, setStartDate] = React.useState(savedDraft?.startDate || 'เริ่มได้ทันที');
+            const [expectedSalary, setExpectedSalary] = React.useState(savedDraft?.expectedSalary || '');
+            const [source, setSource] = React.useState(savedDraft?.source || SOURCES[0]);
+            const [referralName, setReferralName] = React.useState(savedDraft?.referralName || '');
+
+            React.useEffect(() => {
+                if (savedDraft) {
+                    setIsRestoredFromDraft(true);
+                }
+            }, []);
+
+            // Auto-Save draft to localStorage
+            React.useEffect(() => {
+                if (submitResult) return;
+
+                const draftPayload = {
+                    pdpaConsent, fullName, nickname, birthdate, age, phone, lineId, email, address,
+                    attachmentType, resumeUrl, jobTitle, teachingDetail, experience,
+                    branchPreference, educationLevel, faculty, reasonForJoining, startDate,
+                    expectedSalary, source, referralName,
+                    updatedAt: new Date().toISOString()
+                };
+
+                try {
+                    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
+                } catch (e) {
+                    console.error('LocalStorage Save Error:', e);
+                }
+            }, [
+                pdpaConsent, fullName, nickname, birthdate, age, phone, lineId, email, address,
+                attachmentType, resumeUrl, jobTitle, teachingDetail, experience,
+                branchPreference, educationLevel, faculty, reasonForJoining, startDate,
+                expectedSalary, source, referralName, submitResult
+            ]);
 
             React.useEffect(() => {
                 if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -121,11 +164,39 @@
                 }
             });
 
-            /* STREAMING_CHUNK:Handling file selection and validation logic... */
+            /* STREAMING_CHUNK:Handling helper functions, draft clearing, and auto-fill testing... */
+            const handleClearDraft = () => {
+                localStorage.removeItem(DRAFT_STORAGE_KEY);
+                setIsRestoredFromDraft(false);
+                setPdpaConsent('ยินยอม');
+                setFullName('');
+                setNickname('');
+                setBirthdate('');
+                setAge('');
+                setPhone('');
+                setLineId('');
+                setEmail('');
+                setAddress('');
+                setResumeFile(null);
+                setResumeUrl('');
+                setJobTitle(JOB_POSITIONS[0]);
+                setTeachingDetail('');
+                setExperience('');
+                setBranchPreference(LNC_BRANCHES[0]);
+                setEducationLevel('ปริญญาตรี');
+                setFaculty('');
+                setReasonForJoining('');
+                setStartDate('เริ่มได้ทันที');
+                setExpectedSalary('');
+                setSource(SOURCES[0]);
+                setReferralName('');
+                showToast('🧹 ล้างข้อมูลร่างทั้งหมดเรียบร้อยแล้ว');
+            };
+
             const handleFileChange = (e) => {
                 const selectedFile = e.target.files[0];
                 if (selectedFile) {
-                    if (selectedFile.size > 10 * 1024 * 1024) { // 10MB limit
+                    if (selectedFile.size > 10 * 1024 * 1024) {
                         showToast('⚠️ ขนาดไฟล์เกิน 10 MB กรุณาเลือกไฟล์ที่มีขนาดเล็กลง');
                         e.target.value = null;
                         return;
@@ -177,10 +248,10 @@
 
             const showToast = (msg) => {
                 setToastMessage(msg);
-                setTimeout(() => setToastMessage(null), 3500);
+                setTimeout(() => setToastMessage(null), 4000);
             };
 
-            /* STREAMING_CHUNK:Handling form submission and file uploading to Supabase Storage... */
+            /* STREAMING_CHUNK:Submitting registration payload directly to Supabase candidates table... */
             const handleSubmit = async (e) => {
                 e.preventDefault();
 
@@ -212,8 +283,7 @@
 
                         if (uploadError) {
                             console.error('Storage Upload Error:', uploadError);
-                            showToast(`⚠️ อัปโหลดไฟล์ตรงไม่สำเร็จ (${uploadError.message}) จะบันทึกชื่อไฟล์ไว้ในระบบ`);
-                            finalResumeUrl = `File: ${resumeFile.name} (รอดึงไฟล์จากเครื่อง)`;
+                            finalResumeUrl = `File: ${resumeFile.name}`;
                         } else {
                             const { data: urlData } = supabase.storage
                                 .from('resumes')
@@ -231,7 +301,7 @@
                 const isTutor = jobTitle.includes('คุณครู') || jobTitle.includes('ติวเตอร์');
                 const candidateType = isTutor ? 'Tutor' : 'Support';
 
-                // Payload matching Supabase candidates table schema
+                // Payload aligned 100% with Supabase `candidates` schema
                 const candidatePayload = {
                     full_name: fullName,
                     nickname: nickname,
@@ -270,8 +340,9 @@
 
                         if (error) {
                             console.error('Supabase Error:', error);
-                            showToast(`❌ บันทึกลง Supabase ล้มเหลว: ${error.message}`);
+                            showToast(`❌ บันทึกลง Supabase ไม่สำเร็จ: ${error.message} (กรุณาเช็คการ Run schema.sql)`);
                         } else {
+                            localStorage.removeItem(DRAFT_STORAGE_KEY);
                             const newId = data && data[0] ? data[0].id : 'LNC-' + Math.floor(1000 + Math.random() * 9000);
                             setSubmitResult({
                                 success: true,
@@ -283,10 +354,11 @@
                         }
                     } catch (err) {
                         console.error('Connection Exception:', err);
-                        showToast('❌ ไม่สามารถติดต่อ Supabase ได้ กรุณาเช็ค URL/Key');
+                        showToast('❌ ไม่สามารถติดต่อ Supabase ได้ กรุณาเช็ค SUPABASE_URL และ KEY ในโค้ด');
                     }
                 } else {
                     setTimeout(() => {
+                        localStorage.removeItem(DRAFT_STORAGE_KEY);
                         setSubmitResult({
                             success: true,
                             isLiveDb: false,
@@ -300,7 +372,7 @@
                 setIsSubmitting(false);
             };
 
-            /* STREAMING_CHUNK:Rendering application layout with dual attachment options... */
+            /* STREAMING_CHUNK:Rendering registration portal header and full application form... */
             return (
                 <div className="min-h-screen flex flex-col bg-zinc-50">
                     {/* Top Navigation Header */}
@@ -351,6 +423,23 @@
 
                     {/* Main Form Body */}
                     <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 -mt-4 pb-16">
+                        {/* Auto-Save Draft Notification Bar */}
+                        {isRestoredFromDraft && !submitResult && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4 flex items-center justify-between text-xs text-amber-900 shadow-sm">
+                                <div className="flex items-center space-x-2">
+                                    <span className="p-1 bg-amber-200 text-amber-800 rounded-lg font-bold text-[10px]">💾 AUTO-RESTORED</span>
+                                    <span>ระบบได้ดึงข้อมูลที่คุณเคยพิมพ์ค้างไว้กลับมาให้อัตโนมัติ</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleClearDraft}
+                                    className="text-[11px] font-bold text-rose-600 hover:text-rose-800 underline"
+                                >
+                                    ล้างร่างเพื่อเริ่มใหม่
+                                </button>
+                            </div>
+                        )}
+
                         {submitResult ? (
                             <div className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-2xl text-center space-y-5">
                                 <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
@@ -369,11 +458,11 @@
                                     <div className="flex justify-between border-b pb-1">
                                         <span className="text-zinc-500">Database Status:</span>
                                         <span className={submitResult.isLiveDb ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>
-                                            {submitResult.isLiveDb ? 'Synced to Supabase' : 'Demo Local Saved'}
+                                            {submitResult.isLiveDb ? 'Synced to Supabase Live' : 'Demo Local Saved'}
                                         </span>
                                     </div>
                                     <p className="text-[10px] text-zinc-400 text-center pt-1 font-sans">
-                                        ข้อมูลจะปรากฏบนบอร์ด LNC Plus HR Management (หลังบ้าน) ทันที
+                                        ข้อมูลลงทะเบียนถูกส่งเข้าตาราง candidates และจะปรากฏบนบอร์ด HR หลังบ้านทันที
                                     </p>
                                 </div>
 
@@ -520,7 +609,7 @@
                                         ></textarea>
                                     </div>
 
-                                    {/* Dual Attachment Section: File Upload or Link Input */}
+                                    {/* Dual Attachment Section */}
                                     <div className="text-xs space-y-2 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
                                         <div className="flex items-center justify-between border-b pb-2">
                                             <label className="font-bold text-zinc-900 flex items-center space-x-1.5">
@@ -528,7 +617,6 @@
                                                 <span>แนบ Resume / CV / Portfolio *</span>
                                             </label>
 
-                                            {/* Attachment Mode Toggle */}
                                             <div className="flex space-x-1 bg-zinc-200 p-0.5 rounded-lg text-[10px] font-bold">
                                                 <button
                                                     type="button"
@@ -768,7 +856,7 @@
                                         className="bg-lnc-pink hover:bg-rose-700 text-white font-extrabold text-xs px-8 py-3.5 rounded-xl transition shadow-lg flex items-center space-x-2"
                                     >
                                         {isSubmitting ? (
-                                            <span>กำลังอัปโหลดและส่งใบสมัคร...</span>
+                                            <span>กำลังอัปโหลดและส่งใบสมัครเข้า Supabase...</span>
                                         ) : (
                                             <>
                                                 <span>ส่งใบสมัครเข้าระบบ LNC Plus</span>
