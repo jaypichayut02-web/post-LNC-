@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ร่วมงานกับ LNC Plus - สถาบันกวดวิชาคุณภาพ (Step to Beyond Learning)</title>
+
+    <!-- Tailwind CSS -->
+    <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons UMD -->
+    <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+    <!-- React & ReactDOM 18 UMD -->
+    <script data-cfasync="false" src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script data-cfasync="false" src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel Standalone -->
+    <script data-cfasync="false" src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"></script>
+    <!-- Supabase JS Client UMD -->
+    <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+    <script data-cfasync="false">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lnc: {
+                            pink: '#E60067',      /* LNC Magenta Pink */
+                            pinklight: '#FFF0F5',
+                            dark: '#18181B',      /* Dark Navy / Zinc 900 */
+                            gray: '#71717A',
+                            bg: '#FAFAFA'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #FAFAFA; color: #18181B; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script data-cfasync="false" type="text/babel" data-presets="react" data-type="module">
+        // ------------------------------------------------------------------------
+        // 🔑 ใส่ Supabase URL และ Anon Key ของคุณตรงนี้เพื่อทดสอบเชื่อมต่อฐานข้อมูล
+        // ------------------------------------------------------------------------
+        const SUPABASE_URL = "";  // เช่น "https://bxewjkhvguphfcuiwpjg.supabase.co"
+        const SUPABASE_KEY = "";  // เช่น "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A"
+        // ------------------------------------------------------------------------
+
+        const LNC_BRANCHES = [
+            'แลนมาร์ค-มหาชัย',
+            'ข้างเซ็นทรัล พระราม2',
+            'เดอะไบรท์ พระราม2',
+            'The walk ราชพฤกษ์ นนทบุรี',
+            'Meta mall เชียงใหม่',
+            'EZY Learn (ออนไลน์)',
+            'Happitat บางนา (ชั้น 5)'
+        ];
+
+        const JOB_POSITIONS = [
+            'คุณครูประจำ',
+            'ติวเตอร์ (คุณครูพาร์ทไทม์)',
+            'Operation Admin สาขาเดอะไบรท์ พระราม 2',
+            'CS',
+            'HR Recruitment'
+        ];
+
+        const SOURCES = [
+            'เพจ Facebook',
+            'กลุ่มหางานใน Facebook',
+            'Fastwork',
+            'IG',
+            'เพื่อนแนะนำ',
+            'อื่นๆ'
+        ];
+
+        function App() {
+            const [isSubmitting, setIsSubmitting] = React.useState(false);
+            const [submitResult, setSubmitResult] = React.useState(null);
+            const [toastMessage, setToastMessage] = React.useState(null);
+
+            // Form Fields State
+            const [pdpaConsent, setPdpaConsent] = React.useState('ยินยอม');
+            const [fullName, setFullName] = React.useState('');
+            const [nickname, setNickname] = React.useState('');
+            const [birthdate, setBirthdate] = React.useState('');
+            const [age, setAge] = React.useState('');
+            const [phone, setPhone] = React.useState('');
+            const [lineId, setLineId] = React.useState('');
+            const [email, setEmail] = React.useState('');
+            const [address, setAddress] = React.useState('');
+            const [resumeUrl, setResumeUrl] = React.useState('');
+
+            const [jobTitle, setJobTitle] = React.useState(JOB_POSITIONS[0]);
+            const [teachingDetail, setTeachingDetail] = React.useState('');
+            const [experience, setExperience] = React.useState('');
+            const [branchPreference, setBranchPreference] = React.useState(LNC_BRANCHES[0]);
+
+            const [educationLevel, setEducationLevel] = React.useState('ปริญญาตรี');
+            const [faculty, setFaculty] = React.useState('');
+            const [reasonForJoining, setReasonForJoining] = React.useState('');
+            const [startDate, setStartDate] = React.useState('เริ่มได้ทันที');
+            const [expectedSalary, setExpectedSalary] = React.useState('');
+            const [source, setSource] = React.useState(SOURCES[0]);
+            const [referralName, setReferralName] = React.useState('');
+
+            React.useEffect(() => {
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+            });
+
+            // Calculate age automatically from birthdate
+            const handleBirthdateChange = (e) => {
+                const val = e.target.value;
+                setBirthdate(val);
+                if (val) {
+                    const birthYear = new Date(val).getFullYear();
+                    const currentYear = new Date().getFullYear();
+                    const calculatedAge = currentYear - birthYear;
+                    if (calculatedAge > 0 && calculatedAge < 100) {
+                        setAge(calculatedAge.toString());
+                    }
+                }
+            };
+
+            // Quick Auto-fill for Testing System
+            const handleAutoFillTest = () => {
+                setPdpaConsent('ยินยอม');
+                setFullName('นายณัฐพล เรียนดี');
+                setNickname('ครูตั้ม');
+                setBirthdate('1998-05-15');
+                setAge('28');
+                setPhone('0912345678');
+                setLineId('tutor_tumm98');
+                setEmail('tumm.natthapol@gmail.com');
+                setAddress('123/45 ถนนสุขุมวิท แขวงบางนา เขตบางนา กรุงเทพฯ');
+                setResumeUrl('https://drive.google.com/file/d/sample-resume/view');
+                setJobTitle('คุณครูประจำ');
+                setTeachingDetail('คณิตศาสตร์ ม.1-ม.6 และตะลุยโจทย์ A-Level');
+                setExperience('มีประสบการณ์สอนกวดวิชาคณิตศาสตร์ 3 ปี ถนัดเทคนิคคิดลัด');
+                setBranchPreference('Happitat บางนา (ชั้น 5)');
+                setEducationLevel('ปริญญาตรี');
+                setFaculty('คณะครุศาสตร์ สาขาการศึกษาคณิตศาสตร์');
+                setReasonForJoining('สนใจในวิสัยทัศน์ Step to Beyond Learning และชอบบรรยากาศการสอนของ LNC Plus');
+                setStartDate('เริ่มได้ทันที');
+                setExpectedSalary('30,000 - 35,000 บาท');
+                setSource('เพจ Facebook');
+                setReferralName('ครูพี่เบสท์');
+
+                showToast('⚡ กรอกข้อมูลทดสอบระบบเรียบร้อยแล้ว');
+            };
+
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(null), 3500);
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+
+                if (pdpaConsent !== 'ยินยอม') {
+                    showToast('⚠️ กรุณาติ๊ก "ยินยอม" ให้บริษัทเก็บรักษาข้อมูลตามกฎหมาย PDPA');
+                    return;
+                }
+
+                setIsSubmitting(true);
+
+                const isTutor = jobTitle.includes('คุณครู') || jobTitle.includes('ติวเตอร์');
+                const candidateType = isTutor ? 'Tutor' : 'Support';
+
+                // Payload aligned with Supabase `candidates` schema
+                const candidatePayload = {
+                    full_name: fullName,
+                    nickname: nickname,
+                    phone: phone,
+                    email: email,
+                    candidate_type: candidateType,
+                    job_title: isTutor && teachingDetail ? `${jobTitle} (${teachingDetail})` : jobTitle,
+                    education_level: educationLevel,
+                    expected_salary: expectedSalary,
+                    source: source,
+                    stage: 'Application',
+                    probation_days_left: 90
+                };
+
+                // Check if Supabase URL and Key are available
+                if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
+                    try {
+                        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                        const { data, error } = await supabase
+                            .from('candidates')
+                            .insert([candidatePayload])
+                            .select();
+
+                        if (error) {
+                            console.error('Supabase Error:', error);
+                            showToast(`❌ บันทึกลง Supabase ล้มเหลว: ${error.message}`);
+                        } else {
+                            const newId = data && data[0] ? data[0].id : 'LNC-' + Math.floor(1000 + Math.random() * 9000);
+                            setSubmitResult({
+                                success: true,
+                                isLiveDb: true,
+                                id: newId,
+                                name: fullName,
+                                job: jobTitle
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Connection Exception:', err);
+                        showToast('❌ ไม่สามารถติดต่อ Supabase ได้ กรุณาเช็ค URL/Key');
+                    }
+                } else {
+                    // Fallback Demo Mode
+                    setTimeout(() => {
+                        setSubmitResult({
+                            success: true,
+                            isLiveDb: false,
+                            id: 'DEMO-' + Math.floor(10000 + Math.random() * 90000),
+                            name: fullName,
+                            job: jobTitle
+                        });
+                    }, 800);
+                }
+
+                setIsSubmitting(false);
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col bg-zinc-50">
+                    {/* Top Header */}
+                    <header className="bg-zinc-900 text-white border-b border-zinc-800 sticky top-0 z-40 shadow-md">
+                        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <div className="bg-lnc-pink text-white w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg tracking-tighter shadow-md">
+                                    LNC<span className="text-xs font-light text-white">+</span>
+                                </div>
+                                <div>
+                                    <h1 className="font-extrabold text-sm sm:text-base tracking-tight leading-none text-white">LNC Plus Careers</h1>
+                                    <p className="text-[10px] text-zinc-400 mt-0.5">เพราะเราเป็นได้มากกว่ากวดวิชา • Step to Beyond Learning</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    type="button"
+                                    onClick={handleAutoFillTest}
+                                    className="bg-zinc-800 hover:bg-zinc-700 text-rose-300 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-zinc-700 flex items-center space-x-1.5 transition shadow-sm"
+                                >
+                                    <i data-lucide="zap" className="w-3.5 h-3.5 text-lnc-pink"></i>
+                                    <span>กรอกข้อมูลทดสอบระบบ</span>
+                                </button>
+                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+                                    SUPABASE_URL ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' : 'bg-amber-950/80 text-amber-400 border-amber-800'
+                                }`}>
+                                    {SUPABASE_URL ? '⚡ Supabase Live' : '☁️ Local Test Mode'}
+                                </span>
+                            </div>
+                        </div>
+                    </header>
+
+                    <section className="bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-800 text-white py-10 px-4">
+                        <div className="max-w-3xl mx-auto text-center space-y-3">
+                            <div className="inline-flex items-center space-x-2 bg-rose-500/10 text-rose-300 border border-rose-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                                <span>Official Job Application Form</span>
+                            </div>
+                            <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+                                แบบฟอร์มใบสมัครงาน บริษัท แอลเอ็นซี จำกัด
+                            </h2>
+                            <p className="text-zinc-300 text-xs sm:text-sm max-w-xl mx-auto font-normal leading-relaxed">
+                                สถาบันกวดวิชา LNC Plus ยินดีต้อนรับทั้งคุณครูประจำ ติวเตอร์พาร์ทไทม์ และทีมงานฝ่ายสนับสนุนมาร่วมสร้างสังคมการเรียนรู้ที่ดีไปด้วยกัน
+                            </p>
+                        </div>
+                    </section>
+
+                    <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 -mt-4 pb-16">
+                        {submitResult ? (
+                            <div className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-2xl text-center space-y-5 animate-fade-in">
+                                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                                    <i data-lucide="check-circle" className="w-10 h-10"></i>
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-2xl font-black text-zinc-900">ส่งใบสมัครเรียบร้อยแล้ว!</h3>
+                                    <p className="text-xs text-zinc-500">ขอบคุณ <strong>คุณ{submitResult.name}</strong> ที่สนใจร่วมงานในตำแหน่ง <strong>{submitResult.job}</strong></p>
+                                </div>
+
+                                <div className="p-4 bg-zinc-50 rounded-xl border text-xs text-left max-w-sm mx-auto space-y-1.5 font-mono">
+                                    <div className="flex justify-between border-b pb-1">
+                                        <span className="text-zinc-500">Candidate ID:</span>
+                                        <span className="font-bold text-lnc-pink">{submitResult.id}</span>
+                                    </div>
+                                    <div className="flex justify-between border-b pb-1">
+                                        <span className="text-zinc-500">Database Status:</span>
+                                        <span className={submitResult.isLiveDb ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>
+                                            {submitResult.isLiveDb ? 'Synced to Supabase' : 'Demo Local Saved'}
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-zinc-400 text-center pt-1 font-sans">
+                                        ข้อมูลจะปรากฏบนบอร์ด LNC Plus HR Management (หลังบ้าน) ทันที
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => setSubmitResult(null)}
+                                    className="bg-zinc-900 hover:bg-black text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow-md"
+                                >
+                                    กรอกใบสมัครใหม่อีกครั้ง / ส่งเพิ่ม
+                                </button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-zinc-200 shadow-xl p-6 sm:p-8 space-y-8">
+                                {/* PDPA Notice */}
+                                <div className="p-4 bg-rose-50/70 rounded-xl border border-rose-200 space-y-2">
+                                    <p className="text-xs text-zinc-700 leading-relaxed">
+                                        บริษัท แอลเอ็นซี จำกัด (ดำเนินธุรกิจสถาบันกวดวิชา ภายใต้แบรนด์ LNC Plus) ขอขอบคุณที่ท่านให้ความสนใจในการสมัครงาน บริษัทจะดำเนินการพิจารณาใบสมัครของท่านโดยเร็ว และจะทำการติดต่อกลับในช่วงเวลาที่เหมาะสม ทั้งนี้ หากท่านให้ความยินยอม บริษัทจะเก็บข้อมูลของท่านไว้เป็นเวลา 1 ปี นับแต่บริษัทได้รับใบสมัครเพื่อพิจารณาความเหมาะสมต่อไป
+                                    </p>
+                                    <div className="flex items-center space-x-6 pt-1 text-xs font-bold text-zinc-900">
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="pdpa"
+                                                value="ยินยอม"
+                                                checked={pdpaConsent === 'ยินยอม'}
+                                                onChange={e => setPdpaConsent(e.target.value)}
+                                                className="accent-lnc-pink"
+                                            />
+                                            <span>ยินยอม</span>
+                                        </label>
+                                        <label className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="pdpa"
+                                                value="ไม่ยินยอม"
+                                                checked={pdpaConsent === 'ไม่ยินยอม'}
+                                                onChange={e => setPdpaConsent(e.target.value)}
+                                                className="accent-lnc-pink"
+                                            />
+                                            <span>ไม่ยินยอม</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {/* Section 1: Personal Info */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
+                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                                        <span>ข้อมูลส่วนตัวและการติดต่อ</span>
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                        <div className="sm:col-span-2">
+                                            <label className="font-bold block mb-1">คำนำหน้า - ชื่อ - สกุล *</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น นายสอนดี ด้วยตั้งใจ"
+                                                value={fullName}
+                                                onChange={e => setFullName(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">ชื่อเล่น *</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น ครูเบสท์"
+                                                value={nickname}
+                                                onChange={e => setNickname(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">วันเดือนปีเกิด *</label>
+                                            <input
+                                                type="date"
+                                                value={birthdate}
+                                                onChange={handleBirthdateChange}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">อายุ (ปี) *</label>
+                                            <input
+                                                type="number"
+                                                placeholder="เช่น 25"
+                                                value={age}
+                                                onChange={e => setAge(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">เบอร์โทรศัพท์ (ไม่ต้องมีขีด) *</label>
+                                            <input
+                                                type="tel"
+                                                placeholder="0908984816"
+                                                value={phone}
+                                                onChange={e => setPhone(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">ID : Line *</label>
+                                            <input
+                                                type="text"
+                                                placeholder="line_id_123"
+                                                value={lineId}
+                                                onChange={e => setLineId(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">Email (Gmail) ปัจจุบัน *</label>
+                                            <input
+                                                type="email"
+                                                placeholder="example@gmail.com"
+                                                value={email}
+                                                onChange={e => setEmail(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">ที่อยู่ปัจจุบัน</label>
+                                        <textarea
+                                            rows="2"
+                                            placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด"
+                                            value={address}
+                                            onChange={e => setAddress(e.target.value)}
+                                            className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                        ></textarea>
+                                    </div>
+
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">แนบ Resume / CV / Portfolio (Link URL Drive หรือ Canva) *</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://drive.google.com/file/d/... หรือ Canva URL"
+                                            value={resumeUrl}
+                                            onChange={e => setResumeUrl(e.target.value)}
+                                            className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                            required
+                                        />
+                                        <p className="text-[10px] text-zinc-400 mt-1">กรุณาแชร์ลิงก์ Google Drive หรือ Canva ที่เปิดสิทธิ์เข้าดูไว้ให้เรียบร้อย</p>
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Position & Branch */}
+                                <div className="space-y-4 pt-4 border-t border-zinc-200">
+                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
+                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                                        <span>ตำแหน่งที่สนใจและสาขา</span>
+                                    </h3>
+
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">ตำแหน่งที่สนใจสมัคร *</label>
+                                        <select
+                                            value={jobTitle}
+                                            onChange={e => setJobTitle(e.target.value)}
+                                            className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none"
+                                        >
+                                            {JOB_POSITIONS.map(p => (
+                                                <option key={p} value={p}>{p}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {(jobTitle.includes('คุณครู') || jobTitle.includes('ติวเตอร์')) && (
+                                        <div className="text-xs space-y-1">
+                                            <label className="font-bold block">สำหรับคุณครูประจำและติวเตอร์ (พาร์ทไทม์) โปรดระบุสาขาวิชาที่สนใจ และระดับชั้นที่สอน *</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น คณิต ม.1-ม.6 และวิทย์ทั่วไป ม.1-ม.3"
+                                                value={teachingDetail}
+                                                onChange={e => setTeachingDetail(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">ความสามารถและประสบการณ์ที่ผ่านมา *</label>
+                                        <textarea
+                                            rows="3"
+                                            placeholder="อธิบายประสบการณ์สอน หรือประสบการณ์ทำงานที่เกี่ยวข้องอย่างสั้นๆ"
+                                            value={experience}
+                                            onChange={e => setExperience(e.target.value)}
+                                            className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                            required
+                                        ></textarea>
+                                    </div>
+
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">สาขาที่สะดวกทำงาน *</label>
+                                        <select
+                                            value={branchPreference}
+                                            onChange={e => setBranchPreference(e.target.value)}
+                                            className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none"
+                                        >
+                                            {LNC_BRANCHES.map(b => (
+                                                <option key={b} value={b}>{b}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Section 3: Education & Experience */}
+                                <div className="space-y-4 pt-4 border-t border-zinc-200">
+                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
+                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                                        <span>การศึกษาและคาดหวัง</span>
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">ระดับการศึกษา *</label>
+                                            <select
+                                                value={educationLevel}
+                                                onChange={e => setEducationLevel(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none"
+                                            >
+                                                <option value="ต่ำกว่าปริญญาตรี">ต่ำกว่าปริญญาตรี</option>
+                                                <option value="ปริญญาตรี">ปริญญาตรี</option>
+                                                <option value="ปริญญาโท">ปริญญาโท</option>
+                                                <option value="ปริญญาเอก">ปริญญาเอก</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">คณะสาขาวิชาที่จบ หรือแผนการเรียน *</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น คณะวิศวกรรมศาสตร์ สาขาวิศวกรรมไฟฟ้า"
+                                                value={faculty}
+                                                onChange={e => setFaculty(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="text-xs">
+                                        <label className="font-bold block mb-1">เหตุผลที่อยากร่วมงานกับ LNC Plus *</label>
+                                        <textarea
+                                            rows="2"
+                                            placeholder="บอกเล่าความตั้งใจ หรือเป้าหมายในการร่วมงาน"
+                                            value={reasonForJoining}
+                                            onChange={e => setReasonForJoining(e.target.value)}
+                                            className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                            required
+                                        ></textarea>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">วันที่สามารถเริ่มงานได้ *</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น เริ่มได้ทันที หรือ 1 กันยายน 2026"
+                                                value={startDate}
+                                                onChange={e => setStartDate(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">เงินเดือนที่คาดหวัง *</label>
+                                            <input
+                                                type="text"
+                                                placeholder="เช่น 25,000 - 30,000 บาท หรือ 500 บาท/ชม."
+                                                value={expectedSalary}
+                                                onChange={e => setExpectedSalary(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <label className="font-bold block mb-1">ท่านเห็นประกาศรับสมัครนี้จากที่ไหน *</label>
+                                            <select
+                                                value={source}
+                                                onChange={e => setSource(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none"
+                                            >
+                                                {SOURCES.map(s => (
+                                                    <option key={s} value={s}>{s}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="font-bold block mb-1">ผู้แนะนำในการสมัคร (ถ้ามี)</label>
+                                            <input
+                                                type="text"
+                                                placeholder="ใส่ ชื่อ-นามสกุล ผู้แนะนำ"
+                                                value={referralName}
+                                                onChange={e => setReferralName(e.target.value)}
+                                                className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <div className="pt-4 border-t border-zinc-200 flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="bg-lnc-pink hover:bg-rose-700 text-white font-extrabold text-xs px-8 py-3.5 rounded-xl transition shadow-lg flex items-center space-x-2"
+                                    >
+                                        {isSubmitting ? (
+                                            <span>กำลังส่งใบสมัครเข้า Supabase...</span>
+                                        ) : (
+                                            <>
+                                                <span>ส่งใบสมัครเข้าระบบ LNC Plus</span>
+                                                <i data-lucide="send" className="w-4 h-4"></i>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </main>
+
+                    {/* Toast Alert */}
+                    {toastMessage && (
+                        <div className="fixed bottom-6 right-6 bg-zinc-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center space-x-2 border-l-4 border-lnc-pink z-50">
+                            <i data-lucide="info" className="w-4 h-4 text-lnc-pink"></i>
+                            <span>{toastMessage}</span>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
