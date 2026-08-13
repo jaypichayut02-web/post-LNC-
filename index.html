@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบฟอร์มใบสมัครงาน - บริษัท แอลเอ็นซี จำกัด (LNC Plus)</title>
+    <title>ร่วมงานกับ LNC Plus - แบบฟอร์มใบสมัครงาน (Step to Beyond Learning)</title>
 
     <!-- Tailwind CSS -->
     <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
@@ -30,18 +30,24 @@
             }
         }
     </script>
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background-color: #FAFAFA; color: #18181B; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script data-cfasync="false" type="text/babel" data-presets="react" data-type="module">
-        // ------------------------------------------------------------------------
-        // 🔑 นำ Web App URL ที่ได้จากการ Deploy ใน Google Apps Script มาวางที่นี่
-        // ------------------------------------------------------------------------
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwXxOREeQs1GgYl_qg0xSGj4xiGn-FGtDh1imHhy_k0pzDJzaZL7tr-aM240JJ4l-zmVA/exec";
-        // ------------------------------------------------------------------------
+        /* ------------------------------------------------------------------------ */
+        /* 🔑 นำ Web App URL จาก Google Apps Script (doGet/doPost) มาวางที่นี่         */
+        /* ------------------------------------------------------------------------ */
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwbjau3ityZ2sbVa8EDaun6YiuwlKZRzV3Y-HTCo96zb6_Wlha25sMZzd_7AALbAkIBIg/exec";
+        /* ------------------------------------------------------------------------ */
 
-        const DRAFT_STORAGE_KEY = 'lnc_job_application_sheets_draft';
+        const DRAFT_STORAGE_KEY = 'lnc_job_application_draft_v6';
 
         const LNC_BRANCHES = [
             'แลนมาร์ค-มหาชัย',
@@ -72,16 +78,12 @@
 
         function Icon({ name, className = "w-4 h-4" }) {
             switch (name) {
-                case 'check-circle':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-                case 'send':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>;
-                case 'paperclip':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>;
-                case 'info':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-                default:
-                    return null;
+                case 'check-circle': return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+                case 'send': return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>;
+                case 'upload-cloud': return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>;
+                case 'paperclip': return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>;
+                case 'info': return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+                default: return null;
             }
         }
 
@@ -95,9 +97,7 @@
                 try {
                     const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
                     return raw ? JSON.parse(raw) : null;
-                } catch (e) {
-                    return null;
-                }
+                } catch (e) { return null; }
             }, []);
 
             const [pdpaConsent, setPdpaConsent] = React.useState(savedDraft?.pdpaConsent || 'ยินยอม');
@@ -110,7 +110,11 @@
             const [email, setEmail] = React.useState(savedDraft?.email || '');
             const [address, setAddress] = React.useState(savedDraft?.address || '');
             
-            const [resumeUrl, setResumeUrl] = React.useState(savedDraft?.resumeUrl || '');
+            // File Upload States
+            const [resumeFile, setResumeFile] = React.useState(null);
+            const [resumeBase64, setResumeBase64] = React.useState('');
+            const [resumeFileName, setResumeFileName] = React.useState('');
+            const [resumeMimeType, setResumeMimeType] = React.useState('');
 
             const [jobTitle, setJobTitle] = React.useState(savedDraft?.jobTitle || JOB_POSITIONS[0]);
             const [teachingDetail, setTeachingDetail] = React.useState(savedDraft?.teachingDetail || '');
@@ -126,38 +130,54 @@
             const [referralName, setReferralName] = React.useState(savedDraft?.referralName || '');
 
             React.useEffect(() => {
-                if (savedDraft) {
-                    setIsRestoredFromDraft(true);
-                }
+                if (savedDraft) setIsRestoredFromDraft(true);
             }, []);
 
             React.useEffect(() => {
                 if (submitResult) return;
                 const draftPayload = {
                     pdpaConsent, fullName, nickname, birthdate, age, phone, lineId, email, address,
-                    resumeUrl, jobTitle, teachingDetail, experience, branchPreference,
-                    educationLevel, faculty, reasonForJoining, startDate, expectedSalary, source, referralName
+                    jobTitle, teachingDetail, experience, branchPreference, educationLevel, faculty,
+                    reasonForJoining, startDate, expectedSalary, source, referralName
                 };
-                try {
-                    localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload));
-                } catch (e) {}
+                try { localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draftPayload)); } catch (e) {}
             }, [
                 pdpaConsent, fullName, nickname, birthdate, age, phone, lineId, email, address,
-                resumeUrl, jobTitle, teachingDetail, experience, branchPreference,
-                educationLevel, faculty, reasonForJoining, startDate, expectedSalary, source, referralName, submitResult
+                jobTitle, teachingDetail, experience, branchPreference, educationLevel, faculty,
+                reasonForJoining, startDate, expectedSalary, source, referralName, submitResult
             ]);
 
             const handleClearDraft = () => {
                 localStorage.removeItem(DRAFT_STORAGE_KEY);
                 setIsRestoredFromDraft(false);
-                setPdpaConsent('ยินยอม');
-                setFullName(''); setNickname(''); setBirthdate(''); setAge(''); setPhone('');
-                setLineId(''); setEmail(''); setAddress(''); setResumeUrl('');
+                setPdpaConsent('ยินยอม'); setFullName(''); setNickname(''); setBirthdate(''); setAge('');
+                setPhone(''); setLineId(''); setEmail(''); setAddress(''); setResumeFile(null);
+                setResumeBase64(''); setResumeFileName(''); setResumeMimeType('');
                 setJobTitle(JOB_POSITIONS[0]); setTeachingDetail(''); setExperience('');
-                setBranchPreference(LNC_BRANCHES[0]); setEducationLevel('ปริญญาตรี');
-                setFaculty(''); setReasonForJoining(''); setStartDate('เริ่มได้ทันที');
-                setExpectedSalary(''); setSource(SOURCES[0]); setReferralName('');
-                showToast('🧹 ล้างข้อมูลร่างทั้งหมดเรียบร้อยแล้ว');
+                setBranchPreference(LNC_BRANCHES[0]); setEducationLevel('ปริญญาตรี'); setFaculty('');
+                setReasonForJoining(''); setStartDate('เริ่มได้ทันที'); setExpectedSalary('');
+                setSource(SOURCES[0]); setReferralName('');
+                showToast('🧹 ล้างข้อมูลที่กรอกค้างไว้เรียบร้อย');
+            };
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 10 * 1024 * 1024) {
+                        showToast('⚠️ ขนาดไฟล์เกิน 10 MB กรุณาเลือกไฟล์ที่เล็กกว่า');
+                        return;
+                    }
+                    setResumeFile(file);
+                    setResumeFileName(file.name);
+                    setResumeMimeType(file.type);
+
+                    const reader = new FileReader();
+                    reader.onload = (uploadEvent) => {
+                        setResumeBase64(uploadEvent.target.result);
+                        showToast(`📄 แนบไฟล์ "${file.name}" เรียบร้อยแล้ว`);
+                    };
+                    reader.readAsDataURL(file);
+                }
             };
 
             const handleBirthdateChange = (e) => {
@@ -166,10 +186,8 @@
                 if (val) {
                     const birthYear = new Date(val).getFullYear();
                     const currentYear = new Date().getFullYear();
-                    const calculatedAge = currentYear - birthYear;
-                    if (calculatedAge > 0 && calculatedAge < 100) {
-                        setAge(calculatedAge.toString());
-                    }
+                    const calcAge = currentYear - birthYear;
+                    if (calcAge > 0 && calcAge < 100) setAge(calcAge.toString());
                 }
             };
 
@@ -182,12 +200,17 @@
                 e.preventDefault();
 
                 if (pdpaConsent !== 'ยินยอม') {
-                    showToast('⚠️ กรุณาเลือก "ยินยอม" เพื่อให้บริษัทดำเนินการพิจารณาใบสมัคร');
+                    showToast('⚠️ กรุณาเลือก "ยินยอม" ตามเงื่อนไข PDPA');
+                    return;
+                }
+
+                if (!resumeFile) {
+                    showToast('⚠️ กรุณาแนบไฟล์ Resume / CV ของท่าน');
                     return;
                 }
 
                 if (!GAS_WEB_APP_URL || GAS_WEB_APP_URL.includes("YOUR_GAS_DEPLOYMENT_ID")) {
-                    showToast('❌ ยังไม่ได้ใส่ Google Apps Script Web App URL ในโค้ด');
+                    showToast('❌ กรุณานำ Web App URL จาก Google Apps Script มาใส่ในโค้ดก่อน');
                     return;
                 }
 
@@ -197,31 +220,52 @@
                 const candidateType = isTutor ? 'Tutor' : 'Support';
 
                 const payload = {
-                    fullName, nickname, birthdate, age, phone, lineId, email, address,
-                    pdpaConsent, candidateType,
-                    jobTitle: isTutor && teachingDetail ? `${jobTitle} (${teachingDetail})` : jobTitle,
-                    teachingDetail, experience, branchPreference, educationLevel, faculty,
-                    reasonForJoining, startDate, expectedSalary, source, referralName,
-                    resumeUrl: resumeUrl || 'ไม่ได้แนบลิงก์'
+                    full_name: fullName,
+                    nickname: nickname,
+                    birthdate: birthdate,
+                    age: age,
+                    phone: phone,
+                    line_id: lineId,
+                    email: email,
+                    address: address,
+                    pdpa_consent: pdpaConsent,
+                    candidate_type: candidateType,
+                    job_title: isTutor && teachingDetail ? `${jobTitle} (${teachingDetail})` : jobTitle,
+                    teaching_detail: teachingDetail,
+                    experience: experience,
+                    branch_preference: branchPreference,
+                    education_level: educationLevel,
+                    faculty: faculty,
+                    reason_for_joining: reasonForJoining,
+                    start_date: startDate,
+                    expected_salary: expectedSalary,
+                    source: source,
+                    referral_name: referralName,
+                    fileData: resumeBase64,
+                    fileName: resumeFileName,
+                    fileMimeType: resumeMimeType
                 };
 
                 try {
-                    await fetch(GAS_WEB_APP_URL, {
+                    const response = await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    const result = await response.json();
 
-                    localStorage.removeItem(DRAFT_STORAGE_KEY);
-                    setSubmitResult({
-                        success: true,
-                        name: fullName,
-                        job: jobTitle
-                    });
+                    if (result.status === 'success') {
+                        localStorage.removeItem(DRAFT_STORAGE_KEY);
+                        setSubmitResult({
+                            id: result.id,
+                            name: fullName,
+                            job: jobTitle
+                        });
+                    } else {
+                        showToast('❌ บันทึกไม่สำเร็จ: ' + result.message);
+                    }
                 } catch (err) {
-                    console.error('Submission Error:', err);
-                    showToast('❌ ไม่สามารถส่งข้อมูลไปยัง Google Sheets ได้');
+                    console.error(err);
+                    showToast('❌ ไม่สามารถเชื่อมต่อกับ Google Sheet ได้');
                 }
 
                 setIsSubmitting(false);
@@ -232,221 +276,151 @@
                     <header className="bg-zinc-900 text-white border-b border-zinc-800 sticky top-0 z-40 shadow-md">
                         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                                <div className="bg-lnc-pink text-white w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg tracking-tighter shadow-md">
-                                    LNC<span className="text-xs font-light text-white">+</span>
+                                <div className="bg-lnc-pink text-white w-9 h-9 rounded-xl flex items-center justify-center font-black text-lg">
+                                    LNC<span className="text-xs font-light">+</span>
                                 </div>
                                 <div>
-                                    <h1 className="font-extrabold text-sm sm:text-base tracking-tight leading-none text-white">LNC Plus Careers</h1>
-                                    <p className="text-[10px] text-zinc-400 mt-0.5">เพราะเราเป็นได้มากกว่ากวดวิชา • Step to Beyond Learning</p>
+                                    <h1 className="font-extrabold text-sm sm:text-base text-white">LNC Plus Careers</h1>
+                                    <p className="text-[10px] text-zinc-400">Step to Beyond Learning</p>
                                 </div>
                             </div>
-                            <span className="text-[10px] font-bold px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full border border-emerald-800 flex items-center space-x-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                <span>Google Sheets Connected</span>
+                            <span className="text-[10px] font-bold px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full border border-emerald-800">
+                                Google Sheets Connected
                             </span>
                         </div>
                     </header>
 
-                    <section className="bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-800 text-white py-10 px-4">
+                    <section className="bg-gradient-to-b from-zinc-900 to-zinc-800 text-white py-10 px-4">
                         <div className="max-w-3xl mx-auto text-center space-y-3">
-                            <div className="inline-flex items-center space-x-2 bg-rose-500/10 text-rose-300 border border-rose-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                <span>แบบฟอร์มใบสมัครงานออนไลน์</span>
-                            </div>
-                            <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-                                ร่วมงานกับ บริษัท แอลเอ็นซี จำกัด
-                            </h2>
-                            <p className="text-zinc-300 text-xs sm:text-sm max-w-xl mx-auto font-normal leading-relaxed">
-                                สถาบันกวดวิชา LNC Plus ยินดีต้อนรับทั้งคุณครูประจำ ติวเตอร์พาร์ทไทม์ และทีมงานฝ่ายสนับสนุนมาร่วมสร้างสังคมการเรียนรู้ที่ดีไปด้วยกัน
-                            </p>
+                            <span className="bg-rose-500/10 text-rose-300 border border-rose-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                                แบบฟอร์มใบสมัครงานออนไลน์ (อัปโหลดไฟล์ได้)
+                            </span>
+                            <h2 className="text-2xl sm:text-4xl font-black">ร่วมงานกับ บริษัท แอลเอ็นซี จำกัด</h2>
                         </div>
                     </section>
 
                     <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 -mt-4 pb-16">
                         {isRestoredFromDraft && !submitResult && (
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4 flex items-center justify-between text-xs text-amber-900 shadow-sm">
-                                <div className="flex items-center space-x-2">
-                                    <span className="p-1 bg-amber-200 text-amber-800 rounded-lg font-bold text-[10px]">💾 AUTO-RESTORED</span>
-                                    <span>ระบบได้ดึงข้อมูลที่คุณเคยพิมพ์ค้างไว้กลับมาให้อัตโนมัติ</span>
-                                </div>
-                                <button type="button" onClick={handleClearDraft} className="text-[11px] font-bold text-rose-600 hover:text-rose-800 underline">
-                                    ล้างร่างเพื่อเริ่มใหม่
-                                </button>
+                                <span>💾 ดึงข้อมูลที่คุณกรอกค้างไว้กลับมาให้อัตโนมัติ</span>
+                                <button type="button" onClick={handleClearDraft} className="font-bold text-rose-600 underline">ล้างร่างเพื่อเริ่มใหม่</button>
                             </div>
                         )}
 
                         {submitResult ? (
-                            <div className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-2xl text-center space-y-5">
-                                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                            <div className="bg-white p-8 rounded-2xl border shadow-2xl text-center space-y-5">
+                                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                                     <Icon name="check-circle" className="w-10 h-10" />
                                 </div>
-                                <div className="space-y-1">
-                                    <h3 className="text-2xl font-black text-zinc-900">ลงทะเบียนสมัครงานเรียบร้อยแล้ว!</h3>
-                                    <p className="text-xs text-zinc-500">บริษัทได้รับข้อมูลใบสมัครของ <strong>คุณ{submitResult.name}</strong> ในตำแหน่ง <strong>{submitResult.job}</strong> เรียบร้อยแล้ว</p>
+                                <h3 className="text-2xl font-black text-zinc-900">ส่งใบสมัครเรียบร้อยแล้ว!</h3>
+                                <div className="p-4 bg-zinc-50 rounded-xl border text-xs text-left max-w-sm mx-auto space-y-1 font-mono">
+                                    <div>รหัสอ้างอิง: <strong className="text-lnc-pink">{submitResult.id}</strong></div>
+                                    <div>สถานะ: <span className="text-emerald-600 font-bold">บันทึกลง Google Sheets สำเร็จ</span></div>
                                 </div>
-                                <div className="p-4 bg-zinc-50 rounded-xl border text-xs text-left max-w-sm mx-auto space-y-1.5 font-mono">
-                                    <div className="flex justify-between border-b pb-1">
-                                        <span className="text-zinc-500">สถานะการบันทึก:</span>
-                                        <span className="text-emerald-600 font-bold">บันทึกลง Google Sheet สำเร็จ</span>
-                                    </div>
-                                    <p className="text-[10px] text-zinc-400 text-center pt-1 font-sans">
-                                        ข้อมูลจะถูกเพิ่มเป็นแถวใหม่ใน Google Sheets ของคุณทันที
-                                    </p>
-                                </div>
-                                <button onClick={() => setSubmitResult(null)} className="bg-zinc-900 hover:bg-black text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow-md">
-                                    ส่งใบสมัครเพิ่ม / กรอกใหม่อีกครั้ง
-                                </button>
+                                <button onClick={() => setSubmitResult(null)} className="bg-zinc-900 text-white text-xs font-bold px-6 py-3 rounded-xl">ส่งใบสมัครเพิ่ม</button>
                             </div>
                         ) : (
-                            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-zinc-200 shadow-xl p-6 sm:p-8 space-y-8">
-                                <div className="p-4 bg-rose-50/70 rounded-xl border border-rose-200 space-y-2">
-                                    <p className="text-xs text-zinc-700 leading-relaxed">
-                                        บริษัท แอลเอ็นซี จำกัด ขอขอบคุณที่ท่านให้ความสนใจในการสมัครงาน บริษัทจะดำเนินการพิจารณาใบสมัครของท่านโดยเร็ว และจะทำการติดต่อกลับในช่วงเวลาที่เหมาะสม ทั้งนี้ หากท่านให้ความยินยอม บริษัทจะเก็บข้อมูลของท่านไว้เป็นเวลา 1 ปี
-                                    </p>
-                                    <div className="flex items-center space-x-6 pt-1 text-xs font-bold text-zinc-900">
-                                        <label className="flex items-center space-x-2 cursor-pointer">
-                                            <input type="radio" name="pdpa" value="ยินยอม" checked={pdpaConsent === 'ยินยอม'} onChange={e => setPdpaConsent(e.target.value)} className="accent-lnc-pink" />
-                                            <span>ยินยอม</span>
-                                        </label>
-                                        <label className="flex items-center space-x-2 cursor-pointer">
-                                            <input type="radio" name="pdpa" value="ไม่ยินยอม" checked={pdpaConsent === 'ไม่ยินยอม'} onChange={e => setPdpaConsent(e.target.value)} className="accent-lnc-pink" />
-                                            <span>ไม่ยินยอม</span>
-                                        </label>
+                            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border shadow-xl p-6 sm:p-8 space-y-8">
+                                {/* PDPA */}
+                                <div className="p-4 bg-rose-50 rounded-xl border border-rose-200 space-y-2 text-xs">
+                                    <p className="text-zinc-700 leading-relaxed">บริษัท แอลเอ็นซี จำกัด ขอขอบคุณที่ท่านให้ความสนใจในการสมัครงาน บริษัทจะเก็บรักษาข้อมูลของท่านไว้ 1 ปีตามกฎหมาย PDPA</p>
+                                    <div className="flex space-x-6 font-bold">
+                                        <label className="flex items-center space-x-2"><input type="radio" name="pdpa" value="ยินยอม" checked={pdpaConsent === 'ยินยอม'} onChange={e => setPdpaConsent(e.target.value)} className="accent-lnc-pink" /><span>ยินยอม</span></label>
+                                        <label className="flex items-center space-x-2"><input type="radio" name="pdpa" value="ไม่ยินยอม" checked={pdpaConsent === 'ไม่ยินยอม'} onChange={e => setPdpaConsent(e.target.value)} className="accent-lnc-pink" /><span>ไม่ยินยอม</span></label>
                                     </div>
                                 </div>
 
-                                {/* Section 1 */}
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
-                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">1</span>
-                                        <span>ข้อมูลส่วนตัวและการติดต่อ</span>
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                                        <div className="sm:col-span-2">
-                                            <label className="font-bold block mb-1">คำนำหน้า - ชื่อ - สกุล *</label>
-                                            <input type="text" placeholder="เช่น นายสอนดี ด้วยตั้งใจ" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
-                                        <div>
-                                            <label className="font-bold block mb-1">ชื่อเล่น *</label>
-                                            <input type="text" placeholder="เช่น ครูเบสท์" value={nickname} onChange={e => setNickname(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
+                                {/* Personal */}
+                                <div className="space-y-4 text-xs">
+                                    <h3 className="font-black uppercase border-b pb-2">1. ข้อมูลส่วนตัวและการติดต่อ</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="sm:col-span-2"><label className="font-bold block mb-1">ชื่อ - นามสกุล *</label><input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
+                                        <div><label className="font-bold block mb-1">ชื่อเล่น *</label><input type="text" value={nickname} onChange={e => setNickname(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                        <div>
-                                            <label className="font-bold block mb-1">วันเดือนปีเกิด *</label>
-                                            <input type="date" value={birthdate} onChange={handleBirthdateChange} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
-                                        <div>
-                                            <label className="font-bold block mb-1">อายุ (ปี) *</label>
-                                            <input type="number" placeholder="เช่น 25" value={age} onChange={e => setAge(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div><label className="font-bold block mb-1">วันเดือนปีเกิด *</label><input type="date" value={birthdate} onChange={handleBirthdateChange} className="w-full border rounded-lg p-2.5" required /></div>
+                                        <div><label className="font-bold block mb-1">อายุ (ปี) *</label><input type="number" value={age} onChange={e => setAge(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                                        <div>
-                                            <label className="font-bold block mb-1">เบอร์โทรศัพท์ *</label>
-                                            <input type="tel" placeholder="0908984816" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
-                                        <div>
-                                            <label className="font-bold block mb-1">ID : Line *</label>
-                                            <input type="text" placeholder="line_id_123" value={lineId} onChange={e => setLineId(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
-                                        <div>
-                                            <label className="font-bold block mb-1">Email (Gmail) *</label>
-                                            <input type="email" placeholder="example@gmail.com" value={email} onChange={e => setEmail(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div><label className="font-bold block mb-1">เบอร์โทรศัพท์ *</label><input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
+                                        <div><label className="font-bold block mb-1">ID Line *</label><input type="text" value={lineId} onChange={e => setLineId(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
+                                        <div><label className="font-bold block mb-1">Email *</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
                                     </div>
-                                    <div className="text-xs">
-                                        <label className="font-bold block mb-1">ที่อยู่ปัจจุบัน</label>
-                                        <textarea rows="2" placeholder="บ้านเลขที่ ถนน แขวง/ตำบล เขต/อำเภอ จังหวัด" value={address} onChange={e => setAddress(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none"></textarea>
-                                    </div>
-                                    <div className="text-xs space-y-1">
-                                        <label className="font-bold block mb-1">แนบลิงก์ Resume / Portfolio (Google Drive / Canva URL) *</label>
-                                        <input type="url" placeholder="https://drive.google.com/file/d/... หรือ Canva URL" value={resumeUrl} onChange={e => setResumeUrl(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        <p className="text-[10px] text-zinc-400">กรุณาแชร์ลิงก์ที่เปิดสิทธิ์เข้าดูไว้ให้เรียบร้อย</p>
+                                    <div><label className="font-bold block mb-1">ที่อยู่ปัจจุบัน</label><textarea rows="2" value={address} onChange={e => setAddress(e.target.value)} className="w-full border rounded-lg p-2.5"></textarea></div>
+
+                                    {/* File Upload Component */}
+                                    <div className="space-y-2 bg-zinc-50 p-4 rounded-xl border">
+                                        <label className="font-bold text-zinc-900 flex items-center space-x-1.5">
+                                            <Icon name="paperclip" className="w-4 h-4 text-lnc-pink" />
+                                            <span>อัปโหลด Resume / CV / Portfolio (PDF หรือ Word ไม่เกิน 10MB) *</span>
+                                        </label>
+                                        <div className="border-2 border-dashed border-zinc-300 hover:border-lnc-pink bg-white rounded-xl p-5 text-center cursor-pointer relative">
+                                            <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" required={!resumeFile} />
+                                            <div className="space-y-1">
+                                                <div className="w-10 h-10 bg-rose-50 text-lnc-pink rounded-full flex items-center justify-center mx-auto"><Icon name="upload-cloud" className="w-5 h-5" /></div>
+                                                <p className="font-bold text-xs text-zinc-800">{resumeFile ? resumeFile.name : 'คลิก หรือ ลากไฟล์ Resume มาวางที่นี่'}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Section 2 */}
-                                <div className="space-y-4 pt-4 border-t border-zinc-200">
-                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
-                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">2</span>
-                                        <span>ตำแหน่งที่สนใจและสาขา</span>
-                                    </h3>
-                                    <div className="text-xs">
+                                {/* Position & Branch */}
+                                <div className="space-y-4 text-xs pt-4 border-t">
+                                    <h3 className="font-black uppercase border-b pb-2">2. ตำแหน่งและสาขา</h3>
+                                    <div>
                                         <label className="font-bold block mb-1">ตำแหน่งที่สนใจสมัคร *</label>
-                                        <select value={jobTitle} onChange={e => setJobTitle(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
+                                        <select value={jobTitle} onChange={e => setJobTitle(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white">
                                             {JOB_POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                                         </select>
                                     </div>
                                     {(jobTitle.includes('คุณครู') || jobTitle.includes('ติวเตอร์')) && (
-                                        <div className="text-xs space-y-1">
-                                            <label className="font-bold block">โปรดระบุสาขาวิชาที่สนใจ และระดับชั้นที่สอน *</label>
-                                            <input type="text" placeholder="เช่น คณิต ม.1-ม.6 และวิทย์ทั่วไป ม.1-ม.3" value={teachingDetail} onChange={e => setTeachingDetail(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
+                                        <div>
+                                            <label className="font-bold block mb-1">ระบุสาขาวิชาและระดับชั้นที่สอน *</label>
+                                            <input type="text" placeholder="เช่น คณิต ม.1-ม.6" value={teachingDetail} onChange={e => setTeachingDetail(e.target.value)} className="w-full border rounded-lg p-2.5" required />
                                         </div>
                                     )}
-                                    <div className="text-xs">
-                                        <label className="font-bold block mb-1">ความสามารถและประสบการณ์ที่ผ่านมา *</label>
-                                        <textarea rows="3" placeholder="อธิบายประสบการณ์สอน หรือประสบการณ์ทำงานที่เกี่ยวข้องอย่างสั้นๆ" value={experience} onChange={e => setExperience(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required></textarea>
-                                    </div>
-                                    <div className="text-xs">
+                                    <div><label className="font-bold block mb-1">ความสามารถและประสบการณ์ที่ผ่านมา *</label><textarea rows="3" value={experience} onChange={e => setExperience(e.target.value)} className="w-full border rounded-lg p-2.5" required></textarea></div>
+                                    <div>
                                         <label className="font-bold block mb-1">สาขาที่สะดวกทำงาน *</label>
-                                        <select value={branchPreference} onChange={e => setBranchPreference(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
+                                        <select value={branchPreference} onChange={e => setBranchPreference(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white">
                                             {LNC_BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
                                         </select>
                                     </div>
                                 </div>
 
-                                {/* Section 3 */}
-                                <div className="space-y-4 pt-4 border-t border-zinc-200">
-                                    <h3 className="text-xs font-black text-zinc-900 uppercase tracking-wider border-b pb-2 flex items-center space-x-2">
-                                        <span className="w-5 h-5 bg-lnc-pink text-white rounded-full flex items-center justify-center text-[10px]">3</span>
-                                        <span>การศึกษาและคาดหวัง</span>
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                {/* Education */}
+                                <div className="space-y-4 text-xs pt-4 border-t">
+                                    <h3 className="font-black uppercase border-b pb-2">3. การศึกษาและคาดหวัง</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
                                             <label className="font-bold block mb-1">ระดับการศึกษา *</label>
-                                            <select value={educationLevel} onChange={e => setEducationLevel(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
-                                                <option value="ต่ำกว่าปริญญาตรี">ต่ำกว่าปริญญาตรี</option>
+                                            <select value={educationLevel} onChange={e => setEducationLevel(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white">
                                                 <option value="ปริญญาตรี">ปริญญาตรี</option>
                                                 <option value="ปริญญาโท">ปริญญาโท</option>
                                                 <option value="ปริญญาเอก">ปริญญาเอก</option>
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="font-bold block mb-1">คณะสาขาวิชาที่จบ หรือแผนการเรียน *</label>
-                                            <input type="text" placeholder="เช่น คณะวิศวกรรมศาสตร์" value={faculty} onChange={e => setFaculty(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
+                                        <div><label className="font-bold block mb-1">คณะ / สาขาวิชา *</label><input type="text" value={faculty} onChange={e => setFaculty(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
                                     </div>
-                                    <div className="text-xs">
-                                        <label className="font-bold block mb-1">เหตุผลที่อยากร่วมงานกับ LNC Plus *</label>
-                                        <textarea rows="2" placeholder="บอกเล่าความตั้งใจ หรือเป้าหมายในการร่วมงาน" value={reasonForJoining} onChange={e => setReasonForJoining(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required></textarea>
+                                    <div><label className="font-bold block mb-1">เหตุผลที่อยากร่วมงานกับ LNC Plus *</label><textarea rows="2" value={reasonForJoining} onChange={e => setReasonForJoining(e.target.value)} className="w-full border rounded-lg p-2.5" required></textarea></div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div><label className="font-bold block mb-1">เริ่มงานได้เมื่อไหร่ *</label><input type="text" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
+                                        <div><label className="font-bold block mb-1">เงินเดือนที่คาดหวัง *</label><input type="text" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} className="w-full border rounded-lg p-2.5" required /></div>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
-                                            <label className="font-bold block mb-1">วันที่สามารถเริ่มงานได้ *</label>
-                                            <input type="text" placeholder="เช่น เริ่มได้ทันที" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
-                                        <div>
-                                            <label className="font-bold block mb-1">เงินเดือนที่คาดหวัง *</label>
-                                            <input type="text" placeholder="เช่น 25,000 บาท" value={expectedSalary} onChange={e => setExpectedSalary(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" required />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                                        <div>
-                                            <label className="font-bold block mb-1">ท่านเห็นประกาศรับสมัครนี้จากที่ไหน *</label>
-                                            <select value={source} onChange={e => setSource(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white focus:border-lnc-pink focus:outline-none">
+                                            <label className="font-bold block mb-1">เห็นประกาศจากไหน *</label>
+                                            <select value={source} onChange={e => setSource(e.target.value)} className="w-full border rounded-lg p-2.5 bg-white">
                                                 {SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="font-bold block mb-1">ผู้แนะนำในการสมัคร (ถ้ามี)</label>
-                                            <input type="text" placeholder="ชื่อ-นามสกุล ผู้แนะนำ" value={referralName} onChange={e => setReferralName(e.target.value)} className="w-full border rounded-lg p-2.5 focus:border-lnc-pink focus:outline-none" />
-                                        </div>
+                                        <div><label className="font-bold block mb-1">ผู้แนะนำ (ถ้ามี)</label><input type="text" value={referralName} onChange={e => setReferralName(e.target.value)} className="w-full border rounded-lg p-2.5" /></div>
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t border-zinc-200 flex justify-end">
-                                    <button type="submit" disabled={isSubmitting} className="bg-lnc-pink hover:bg-rose-700 text-white font-extrabold text-xs px-8 py-3.5 rounded-xl transition shadow-lg flex items-center space-x-2">
-                                        {isSubmitting ? <span>กำลังส่งข้อมูลไป Google Sheets...</span> : <><span>ส่งใบสมัครเข้าระบบ LNC Plus</span><Icon name="send" className="w-4 h-4" /></>}
+                                <div className="pt-4 border-t flex justify-end">
+                                    <button type="submit" disabled={isSubmitting} className="bg-lnc-pink hover:bg-rose-700 text-white font-extrabold text-xs px-8 py-3.5 rounded-xl shadow-lg flex items-center space-x-2">
+                                        {isSubmitting ? <span>กำลังอัปโหลดไฟล์และส่งใบสมัคร...</span> : <><span>ส่งใบสมัครเข้าระบบ LNC Plus</span><Icon name="send" className="w-4 h-4" /></>}
                                     </button>
                                 </div>
                             </form>
