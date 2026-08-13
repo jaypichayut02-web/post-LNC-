@@ -7,6 +7,8 @@
 
     <!-- Tailwind CSS -->
     <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons UMD -->
+    <script data-cfasync="false" src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
     <!-- React & ReactDOM 18 UMD -->
     <script data-cfasync="false" src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script data-cfasync="false" src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -43,7 +45,7 @@
     <div id="root"></div>
 
     <script data-cfasync="false" type="text/babel" data-presets="react" data-type="module">
-        <!-- STREAMING_CHUNK:Hardcoding Supabase credentials and crash-proof SVG Icon component... -->
+        /* STREAMING_CHUNK:Hardcoding production Supabase API credentials and constant dropdown options... */
         // ------------------------------------------------------------------------
         // 🔑 Supabase Live Connected Credentials
         // ------------------------------------------------------------------------
@@ -51,7 +53,7 @@
         const SUPABASE_KEY = "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A";
         // ------------------------------------------------------------------------
 
-        const DRAFT_STORAGE_KEY = 'lnc_job_application_prod_draft_v3';
+        const DRAFT_STORAGE_KEY = 'lnc_job_application_prod_draft';
 
         const LNC_BRANCHES = [
             'แลนมาร์ค-มหาชัย',
@@ -80,34 +82,14 @@
             'อื่นๆ'
         ];
 
-        // Native Crash-Proof SVG Icon Component (Eliminates DOM Mutations)
-        function Icon({ name, className = "w-4 h-4" }) {
-            switch (name) {
-                case 'check-circle':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-                case 'zap':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
-                case 'send':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>;
-                case 'upload-cloud':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>;
-                case 'paperclip':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>;
-                case 'info':
-                    return <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
-                default:
-                    return null;
-            }
-        }
-
         function App() {
-            <!-- STREAMING_CHUNK:Initializing state variables and restoring draft from localStorage... -->
+            /* STREAMING_CHUNK:Initializing form react state and checking localStorage draft... */
             const [isSubmitting, setIsSubmitting] = React.useState(false);
             const [submitResult, setSubmitResult] = React.useState(null);
             const [toastMessage, setToastMessage] = React.useState(null);
             const [isRestoredFromDraft, setIsRestoredFromDraft] = React.useState(false);
 
-            // Load saved draft from localStorage
+            // Load saved draft from localStorage if available
             const savedDraft = React.useMemo(() => {
                 try {
                     const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -176,7 +158,13 @@
                 expectedSalary, source, referralName, submitResult
             ]);
 
-            <!-- STREAMING_CHUNK:Handling helper functions, file selection, and auto-fill testing... -->
+            React.useEffect(() => {
+                if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                    window.lucide.createIcons();
+                }
+            });
+
+            /* STREAMING_CHUNK:Handling helper functions and draft clearing... */
             const handleClearDraft = () => {
                 localStorage.removeItem(DRAFT_STORAGE_KEY);
                 setIsRestoredFromDraft(false);
@@ -236,7 +224,7 @@
                 setTimeout(() => setToastMessage(null), 4000);
             };
 
-            <!-- STREAMING_CHUNK:Executing crash-proof Supabase registration payload submission... -->
+            /* STREAMING_CHUNK:Submitting registration payload directly to Supabase production table... */
             const handleSubmit = async (e) => {
                 e.preventDefault();
 
@@ -254,7 +242,7 @@
 
                 let finalResumeUrl = resumeUrl;
 
-                // Safely Upload File to Supabase Storage
+                // Upload File to Supabase Storage Bucket 'resumes'
                 if (attachmentType === 'file' && resumeFile && window.supabase) {
                     try {
                         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -267,8 +255,8 @@
                             .upload(filePath, resumeFile, { upsert: true });
 
                         if (uploadError) {
-                            console.warn('Storage Upload Notice:', uploadError);
-                            finalResumeUrl = `File: ${resumeFile.name} (ไม่ได้เข้า Storage)`;
+                            console.error('Storage Upload Error:', uploadError);
+                            finalResumeUrl = `File: ${resumeFile.name} (ไม่ได้อัปเข้า Storage)`;
                         } else {
                             const { data: urlData } = supabase.storage
                                 .from('resumes')
@@ -276,7 +264,7 @@
                             finalResumeUrl = urlData.publicUrl;
                         }
                     } catch (err) {
-                        console.warn('File Upload Exception:', err);
+                        console.error('File Upload Exception:', err);
                         finalResumeUrl = `File Attached: ${resumeFile.name}`;
                     }
                 }
@@ -314,32 +302,21 @@
                 };
 
                 try {
-                    if (window.supabase) {
-                        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                        const { data, error } = await supabase
-                            .from('candidates')
-                            .insert([candidatePayload])
-                            .select();
+                    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    const { data, error } = await supabase
+                        .from('candidates')
+                        .insert([candidatePayload])
+                        .select();
 
-                        if (error) {
-                            console.error('Supabase Error:', error);
-                            showToast(`❌ การลงทะเบียนไม่สำเร็จ: ${error.message}`);
-                        } else {
-                            localStorage.removeItem(DRAFT_STORAGE_KEY);
-                            const newId = data && data[0] ? data[0].id : 'LNC-' + Math.floor(1000 + Math.random() * 9000);
-                            setSubmitResult({
-                                success: true,
-                                id: newId,
-                                name: fullName,
-                                job: jobTitle
-                            });
-                        }
+                    if (error) {
+                        console.error('Supabase Error:', error);
+                        showToast(`❌ การลงทะเบียนไม่สำเร็จ: ${error.message}`);
                     } else {
-                        // Fallback
                         localStorage.removeItem(DRAFT_STORAGE_KEY);
+                        const newId = data && data[0] ? data[0].id : 'LNC-' + Math.floor(1000 + Math.random() * 9000);
                         setSubmitResult({
                             success: true,
-                            id: 'LNC-' + Math.floor(1000 + Math.random() * 9000),
+                            id: newId,
                             name: fullName,
                             job: jobTitle
                         });
@@ -352,7 +329,7 @@
                 setIsSubmitting(false);
             };
 
-            <!-- STREAMING_CHUNK:Rendering full registration form layout and success card... -->
+            /* STREAMING_CHUNK:Rendering clean production registration UI shell... */
             return (
                 <div className="min-h-screen flex flex-col bg-zinc-50">
                     {/* Official Header */}
@@ -368,7 +345,7 @@
                                 </div>
                             </div>
 
-                            <span className="text-[10px] font-bold px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full border border-emerald-800 flex items-center space-x-1.5">
+                            <span className="text-[10px] font-bold px-3 py-1 bg-emerald-950 text-emerald-400 rounded-full border border-emerald-800 flex items-center space-x-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                 <span>Supabase Live Connected</span>
                             </span>
@@ -412,7 +389,7 @@
                         {submitResult ? (
                             <div className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-2xl text-center space-y-5">
                                 <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                                    <Icon name="check-circle" className="w-10 h-10" />
+                                    <i data-lucide="check-circle" className="w-10 h-10"></i>
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="text-2xl font-black text-zinc-900">ลงทะเบียนสมัครงานเรียบร้อยแล้ว!</h3>
@@ -580,7 +557,7 @@
                                     <div className="text-xs space-y-2 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
                                         <div className="flex items-center justify-between border-b pb-2">
                                             <label className="font-bold text-zinc-900 flex items-center space-x-1.5">
-                                                <Icon name="paperclip" className="w-4 h-4 text-lnc-pink" />
+                                                <i data-lucide="paperclip" className="w-4 h-4 text-lnc-pink"></i>
                                                 <span>แนบ Resume / CV / Portfolio *</span>
                                             </label>
 
@@ -617,7 +594,7 @@
                                                     />
                                                     <div className="space-y-1">
                                                         <div className="w-10 h-10 bg-rose-50 text-lnc-pink rounded-full flex items-center justify-center mx-auto">
-                                                            <Icon name="upload-cloud" className="w-5 h-5" />
+                                                            <i data-lucide="upload-cloud" className="w-5 h-5"></i>
                                                         </div>
                                                         <p className="font-bold text-xs text-zinc-800">
                                                             {resumeFile ? resumeFile.name : 'คลิก หรือ ลากไฟล์ Resume มาวางที่นี่'}
@@ -827,7 +804,7 @@
                                         ) : (
                                             <>
                                                 <span>ส่งใบสมัครเข้าระบบ LNC Plus</span>
-                                                <Icon name="send" className="w-4 h-4" />
+                                                <i data-lucide="send" className="w-4 h-4"></i>
                                             </>
                                         )}
                                     </button>
@@ -839,7 +816,7 @@
                     {/* Toast Notification */}
                     {toastMessage && (
                         <div className="fixed bottom-6 right-6 bg-zinc-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center space-x-2 border-l-4 border-lnc-pink z-50">
-                            <Icon name="info" className="w-4 h-4 text-lnc-pink" />
+                            <i data-lucide="info" className="w-4 h-4 text-lnc-pink"></i>
                             <span>{toastMessage}</span>
                         </div>
                     )}
