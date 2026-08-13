@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ร่วมงานกับ LNC Plus - แบบฟอร์มใบสมัครงาน (Step to Beyond Learning)</title>
+    <title>แบบฟอร์มใบสมัครงาน - บริษัท แอลเอ็นซี จำกัด (LNC Plus)</title>
 
     <!-- Tailwind CSS -->
     <script data-cfasync="false" src="https://cdn.tailwindcss.com"></script>
@@ -45,15 +45,15 @@
     <div id="root"></div>
 
     <script data-cfasync="false" type="text/babel" data-presets="react" data-type="module">
-        /* STREAMING_CHUNK:Configuring Supabase API credentials and constant options... */
+        /* STREAMING_CHUNK:Configuring production Supabase API credentials and constant dropdown options... */
         // ------------------------------------------------------------------------
-        // 🔑 ใส่ Supabase URL และ Anon Key ของคุณตรงนี้ (นำมาจาก Supabase Dashboard)
+        // 🔑 ใส่ Supabase URL และ Anon Key ของคุณตรงนี้เพื่อใช้งานในระบบจริง
         // ------------------------------------------------------------------------
         const SUPABASE_URL = "";  // เช่น "https://bxewjkhvguphfcuiwpjg.supabase.co"
         const SUPABASE_KEY = "";  // เช่น "sb_publishable_64TozLYNslnv0Ub8951hFg_dwQy2T_A"
         // ------------------------------------------------------------------------
 
-        const DRAFT_STORAGE_KEY = 'lnc_job_application_draft_v2';
+        const DRAFT_STORAGE_KEY = 'lnc_job_application_prod_draft';
 
         const LNC_BRANCHES = [
             'แลนมาร์ค-มหาชัย',
@@ -83,13 +83,13 @@
         ];
 
         function App() {
-            /* STREAMING_CHUNK:Initializing state variables and restoring draft from storage... */
+            /* STREAMING_CHUNK:Initializing form react state and checking localStorage draft... */
             const [isSubmitting, setIsSubmitting] = React.useState(false);
             const [submitResult, setSubmitResult] = React.useState(null);
             const [toastMessage, setToastMessage] = React.useState(null);
             const [isRestoredFromDraft, setIsRestoredFromDraft] = React.useState(false);
 
-            // Load draft from localStorage
+            // Load saved draft from localStorage if available
             const savedDraft = React.useMemo(() => {
                 try {
                     const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
@@ -134,7 +134,7 @@
                 }
             }, []);
 
-            // Auto-Save draft to localStorage
+            // Auto-Save draft
             React.useEffect(() => {
                 if (submitResult) return;
 
@@ -164,7 +164,7 @@
                 }
             });
 
-            /* STREAMING_CHUNK:Handling helper functions, draft clearing, and auto-fill testing... */
+            /* STREAMING_CHUNK:Handling helper functions and draft clearing... */
             const handleClearDraft = () => {
                 localStorage.removeItem(DRAFT_STORAGE_KEY);
                 setIsRestoredFromDraft(false);
@@ -190,7 +190,7 @@
                 setExpectedSalary('');
                 setSource(SOURCES[0]);
                 setReferralName('');
-                showToast('🧹 ล้างข้อมูลร่างทั้งหมดเรียบร้อยแล้ว');
+                showToast('🧹 ล้างข้อมูลที่เคยพิมพ์ไว้ออกเรียบร้อยแล้ว');
             };
 
             const handleFileChange = (e) => {
@@ -219,49 +219,27 @@
                 }
             };
 
-            const handleAutoFillTest = () => {
-                setPdpaConsent('ยินยอม');
-                setFullName('นายณัฐพล เรียนดี');
-                setNickname('ครูตั้ม');
-                setBirthdate('1998-05-15');
-                setAge('28');
-                setPhone('0912345678');
-                setLineId('tutor_tumm98');
-                setEmail('tumm.natthapol@gmail.com');
-                setAddress('123/45 ถนนสุขุมวิท แขวงบางนา เขตบางนา กรุงเทพฯ');
-                setAttachmentType('url');
-                setResumeUrl('https://drive.google.com/file/d/sample-resume-doc/view');
-                setJobTitle('คุณครูประจำ');
-                setTeachingDetail('คณิตศาสตร์ ม.1-ม.6 และตะลุยโจทย์ A-Level');
-                setExperience('มีประสบการณ์สอนกวดวิชาคณิตศาสตร์ 3 ปี ถนัดเทคนิคคิดลัด');
-                setBranchPreference('Happitat บางนา (ชั้น 5)');
-                setEducationLevel('ปริญญาตรี');
-                setFaculty('คณะครุศาสตร์ สาขาการศึกษาคณิตศาสตร์');
-                setReasonForJoining('สนใจในวิสัยทัศน์ Step to Beyond Learning และชอบบรรยากาศการสอนของ LNC Plus');
-                setStartDate('เริ่มได้ทันที');
-                setExpectedSalary('30,000 - 35,000 บาท');
-                setSource('เพจ Facebook');
-                setReferralName('ครูพี่เบสท์');
-
-                showToast('⚡ กรอกข้อมูลทดสอบระบบเรียบร้อยแล้ว');
-            };
-
             const showToast = (msg) => {
                 setToastMessage(msg);
                 setTimeout(() => setToastMessage(null), 4000);
             };
 
-            /* STREAMING_CHUNK:Submitting registration payload directly to Supabase candidates table... */
+            /* STREAMING_CHUNK:Submitting registration payload directly to Supabase production table... */
             const handleSubmit = async (e) => {
                 e.preventDefault();
 
                 if (pdpaConsent !== 'ยินยอม') {
-                    showToast('⚠️ กรุณาติ๊ก "ยินยอม" ให้บริษัทเก็บรักษาข้อมูลตามกฎหมาย PDPA');
+                    showToast('⚠️ กรุณาเลือก "ยินยอม" เพื่อให้บริษัทดำเนินการพิจารณาใบสมัครตามกฎหมาย PDPA');
                     return;
                 }
 
                 if (attachmentType === 'file' && !resumeFile && !resumeUrl) {
-                    showToast('⚠️ กรุณาเลือกไฟล์ Resume/CV หรือสลับเป็นแนบลิงก์');
+                    showToast('⚠️ กรุณาแนบไฟล์ Resume/CV หรือเลือกสลับเป็นวางลิงก์');
+                    return;
+                }
+
+                if (!SUPABASE_URL || !SUPABASE_KEY) {
+                    showToast('❌ ระบบยังไม่ได้เชื่อมต่อฐานข้อมูล Supabase (กรุณาใส่ URL และ Anon Key ในระบบ)');
                     return;
                 }
 
@@ -269,8 +247,8 @@
 
                 let finalResumeUrl = resumeUrl;
 
-                // Handle File Upload to Supabase Storage Bucket 'resumes'
-                if (attachmentType === 'file' && resumeFile && SUPABASE_URL && SUPABASE_KEY && window.supabase) {
+                // Upload File to Supabase Storage Bucket 'resumes'
+                if (attachmentType === 'file' && resumeFile && window.supabase) {
                     try {
                         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                         const fileExt = resumeFile.name.split('.').pop();
@@ -283,7 +261,7 @@
 
                         if (uploadError) {
                             console.error('Storage Upload Error:', uploadError);
-                            finalResumeUrl = `File: ${resumeFile.name}`;
+                            finalResumeUrl = `File: ${resumeFile.name} (ไม่ได้อัปเข้า Storage)`;
                         } else {
                             const { data: urlData } = supabase.storage
                                 .from('resumes')
@@ -294,14 +272,12 @@
                         console.error('File Upload Exception:', err);
                         finalResumeUrl = `File Attached: ${resumeFile.name}`;
                     }
-                } else if (attachmentType === 'file' && resumeFile) {
-                    finalResumeUrl = `Attached File: ${resumeFile.name} (${(resumeFile.size / 1024 / 1024).toFixed(2)} MB)`;
                 }
 
                 const isTutor = jobTitle.includes('คุณครู') || jobTitle.includes('ติวเตอร์');
                 const candidateType = isTutor ? 'Tutor' : 'Support';
 
-                // Payload aligned 100% with Supabase `candidates` schema
+                // Production Payload matching Supabase candidates schema
                 const candidatePayload = {
                     full_name: fullName,
                     nickname: nickname,
@@ -330,52 +306,38 @@
                     evaluations: {}
                 };
 
-                if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
-                    try {
-                        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                        const { data, error } = await supabase
-                            .from('candidates')
-                            .insert([candidatePayload])
-                            .select();
+                try {
+                    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    const { data, error } = await supabase
+                        .from('candidates')
+                        .insert([candidatePayload])
+                        .select();
 
-                        if (error) {
-                            console.error('Supabase Error:', error);
-                            showToast(`❌ บันทึกลง Supabase ไม่สำเร็จ: ${error.message} (กรุณาเช็คการ Run schema.sql)`);
-                        } else {
-                            localStorage.removeItem(DRAFT_STORAGE_KEY);
-                            const newId = data && data[0] ? data[0].id : 'LNC-' + Math.floor(1000 + Math.random() * 9000);
-                            setSubmitResult({
-                                success: true,
-                                isLiveDb: true,
-                                id: newId,
-                                name: fullName,
-                                job: jobTitle
-                            });
-                        }
-                    } catch (err) {
-                        console.error('Connection Exception:', err);
-                        showToast('❌ ไม่สามารถติดต่อ Supabase ได้ กรุณาเช็ค SUPABASE_URL และ KEY ในโค้ด');
-                    }
-                } else {
-                    setTimeout(() => {
+                    if (error) {
+                        console.error('Supabase Error:', error);
+                        showToast(`❌ การลงทะเบียนไม่สำเร็จ: ${error.message}`);
+                    } else {
                         localStorage.removeItem(DRAFT_STORAGE_KEY);
+                        const newId = data && data[0] ? data[0].id : 'LNC-' + Math.floor(1000 + Math.random() * 9000);
                         setSubmitResult({
                             success: true,
-                            isLiveDb: false,
-                            id: 'DEMO-' + Math.floor(10000 + Math.random() * 90000),
+                            id: newId,
                             name: fullName,
                             job: jobTitle
                         });
-                    }, 800);
+                    }
+                } catch (err) {
+                    console.error('Connection Exception:', err);
+                    showToast('❌ ไม่สามารถติดต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
                 }
 
                 setIsSubmitting(false);
             };
 
-            /* STREAMING_CHUNK:Rendering registration portal header and full application form... */
+            /* STREAMING_CHUNK:Rendering clean production registration UI shell... */
             return (
                 <div className="min-h-screen flex flex-col bg-zinc-50">
-                    {/* Top Navigation Header */}
+                    {/* Official Header */}
                     <header className="bg-zinc-900 text-white border-b border-zinc-800 sticky top-0 z-40 shadow-md">
                         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
                             <div className="flex items-center space-x-3">
@@ -388,21 +350,9 @@
                                 </div>
                             </div>
 
-                            <div className="flex items-center space-x-2">
-                                <button
-                                    type="button"
-                                    onClick={handleAutoFillTest}
-                                    className="bg-zinc-800 hover:bg-zinc-700 text-rose-300 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-zinc-700 flex items-center space-x-1.5 transition shadow-sm"
-                                >
-                                    <i data-lucide="zap" className="w-3.5 h-3.5 text-lnc-pink"></i>
-                                    <span>กรอกข้อมูลทดสอบระบบ</span>
-                                </button>
-                                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${
-                                    SUPABASE_URL ? 'bg-emerald-950/80 text-emerald-400 border-emerald-800' : 'bg-amber-950/80 text-amber-400 border-amber-800'
-                                }`}>
-                                    {SUPABASE_URL ? '⚡ Supabase Live' : '☁️ Local Test Mode'}
-                                </span>
-                            </div>
+                            <span className="text-[10px] font-bold px-3 py-1 bg-zinc-800 text-zinc-300 rounded-full border border-zinc-700">
+                                Official Recruitment Form
+                            </span>
                         </div>
                     </header>
 
@@ -410,10 +360,10 @@
                     <section className="bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-800 text-white py-10 px-4">
                         <div className="max-w-3xl mx-auto text-center space-y-3">
                             <div className="inline-flex items-center space-x-2 bg-rose-500/10 text-rose-300 border border-rose-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                                <span>Official Job Application Form</span>
+                                <span>แบบฟอร์มใบสมัครงานออนไลน์</span>
                             </div>
                             <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-                                แบบฟอร์มใบสมัครงาน บริษัท แอลเอ็นซี จำกัด
+                                ร่วมงานกับ บริษัท แอลเอ็นซี จำกัด
                             </h2>
                             <p className="text-zinc-300 text-xs sm:text-sm max-w-xl mx-auto font-normal leading-relaxed">
                                 สถาบันกวดวิชา LNC Plus ยินดีต้อนรับทั้งคุณครูประจำ ติวเตอร์พาร์ทไทม์ และทีมงานฝ่ายสนับสนุนมาร่วมสร้างสังคมการเรียนรู้ที่ดีไปด้วยกัน
@@ -423,7 +373,7 @@
 
                     {/* Main Form Body */}
                     <main className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 -mt-4 pb-16">
-                        {/* Auto-Save Draft Notification Bar */}
+                        {/* Auto-Save Notification */}
                         {isRestoredFromDraft && !submitResult && (
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4 flex items-center justify-between text-xs text-amber-900 shadow-sm">
                                 <div className="flex items-center space-x-2">
@@ -446,23 +396,21 @@
                                     <i data-lucide="check-circle" className="w-10 h-10"></i>
                                 </div>
                                 <div className="space-y-1">
-                                    <h3 className="text-2xl font-black text-zinc-900">ส่งใบสมัครเรียบร้อยแล้ว!</h3>
-                                    <p className="text-xs text-zinc-500">ขอบคุณ <strong>คุณ{submitResult.name}</strong> ที่สนใจร่วมงานในตำแหน่ง <strong>{submitResult.job}</strong></p>
+                                    <h3 className="text-2xl font-black text-zinc-900">ลงทะเบียนสมัครงานเรียบร้อยแล้ว!</h3>
+                                    <p className="text-xs text-zinc-500">บริษัทได้รับข้อมูลของ <strong>คุณ{submitResult.name}</strong> ในตำแหน่ง <strong>{submitResult.job}</strong> เรียบร้อยแล้ว</p>
                                 </div>
 
                                 <div className="p-4 bg-zinc-50 rounded-xl border text-xs text-left max-w-sm mx-auto space-y-1.5 font-mono">
                                     <div className="flex justify-between border-b pb-1">
-                                        <span className="text-zinc-500">Candidate ID:</span>
+                                        <span className="text-zinc-500">รหัสอ้างอิงใบสมัคร (Candidate ID):</span>
                                         <span className="font-bold text-lnc-pink">{submitResult.id}</span>
                                     </div>
                                     <div className="flex justify-between border-b pb-1">
-                                        <span className="text-zinc-500">Database Status:</span>
-                                        <span className={submitResult.isLiveDb ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'}>
-                                            {submitResult.isLiveDb ? 'Synced to Supabase Live' : 'Demo Local Saved'}
-                                        </span>
+                                        <span className="text-zinc-500">สถานะฐานข้อมูล:</span>
+                                        <span className="text-emerald-600 font-bold">บันทึกลงระบบ HR เรียบร้อย</span>
                                     </div>
                                     <p className="text-[10px] text-zinc-400 text-center pt-1 font-sans">
-                                        ข้อมูลลงทะเบียนถูกส่งเข้าตาราง candidates และจะปรากฏบนบอร์ด HR หลังบ้านทันที
+                                        ฝ่ายทรัพยากรบุคคลจะพิจารณาประวัติและทำการติดต่อกลับตามขั้นตอนถัดไป
                                     </p>
                                 </div>
 
@@ -470,7 +418,7 @@
                                     onClick={() => setSubmitResult(null)}
                                     className="bg-zinc-900 hover:bg-black text-white text-xs font-bold px-6 py-3 rounded-xl transition shadow-md"
                                 >
-                                    กรอกใบสมัครใหม่อีกครั้ง / ส่งเพิ่ม
+                                    ส่งใบสมัครเพิ่ม / กรอกใหม่อีกครั้ง
                                 </button>
                             </div>
                         ) : (
@@ -609,7 +557,7 @@
                                         ></textarea>
                                     </div>
 
-                                    {/* Dual Attachment Section */}
+                                    {/* Attachment Section */}
                                     <div className="text-xs space-y-2 bg-zinc-50 p-4 rounded-xl border border-zinc-200">
                                         <div className="flex items-center justify-between border-b pb-2">
                                             <label className="font-bold text-zinc-900 flex items-center space-x-1.5">
@@ -856,7 +804,7 @@
                                         className="bg-lnc-pink hover:bg-rose-700 text-white font-extrabold text-xs px-8 py-3.5 rounded-xl transition shadow-lg flex items-center space-x-2"
                                     >
                                         {isSubmitting ? (
-                                            <span>กำลังอัปโหลดและส่งใบสมัครเข้า Supabase...</span>
+                                            <span>กำลังส่งข้อมูลเข้าสู่ระบบ...</span>
                                         ) : (
                                             <>
                                                 <span>ส่งใบสมัครเข้าระบบ LNC Plus</span>
@@ -869,7 +817,7 @@
                         )}
                     </main>
 
-                    {/* Toast Alert */}
+                    {/* Toast Notification */}
                     {toastMessage && (
                         <div className="fixed bottom-6 right-6 bg-zinc-900 text-white px-4 py-3 rounded-xl shadow-2xl text-xs flex items-center space-x-2 border-l-4 border-lnc-pink z-50">
                             <i data-lucide="info" className="w-4 h-4 text-lnc-pink"></i>
